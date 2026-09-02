@@ -2,18 +2,15 @@ import React, { useState } from 'react';
 import { HouseNumber, PlanetId, ChartStyle } from './types/astrology';
 import { Header } from './components/Header';
 import { KundliChart } from './components/KundliChart';
-import { PlanetPosterGrid } from './components/PlanetPosterGrid';
-import { HousesExplorer } from './components/HousesExplorer';
 import { KundliBuilder } from './components/KundliBuilder';
 import { GemstoneRecommender } from './components/GemstoneRecommender';
 import { SearchModal } from './components/SearchModal';
 import { CustomReportModal } from './components/CustomReportModal';
 import { HOUSES_DATA } from './data/housesData';
-import { PLANETS_DATA } from './data/planetsData';
 import { Sparkles, Layers, ArrowUp } from 'lucide-react';
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState<'chart' | 'planets' | 'houses' | 'builder' | 'gemstones'>('chart');
+  const [activeTab, setActiveTab] = useState<'chart' | 'builder' | 'gemstones'>('chart');
   const [selectedHouse, setSelectedHouse] = useState<HouseNumber>(1);
   const [selectedPlanet, setSelectedPlanet] = useState<PlanetId>('sun');
   const [chartStyle, setChartStyle] = useState<ChartStyle>('north');
@@ -52,7 +49,6 @@ export default function App() {
 
   const handlePlanetSelect = (planetId: PlanetId) => {
     setSelectedPlanet(planetId);
-    setActiveTab('planets');
   };
 
   const scrollToTop = () => {
@@ -97,15 +93,9 @@ export default function App() {
                     12 Houses of Vedic Kundli (द्वादश भाव संदर्भ)
                   </h3>
                   <p className="text-xs text-stone-600">
-                    Click any house card below to explore its specific life significations, karakas, and planetary effects.
+                    Click any house card below to highlight its specific life significations, karakas, and planetary effects in the chart above.
                   </p>
                 </div>
-                <button
-                  onClick={() => setActiveTab('houses')}
-                  className="text-xs font-bold text-amber-800 hover:text-amber-950 hover:underline"
-                >
-                  View Full 12 Bhavas Explorer &rarr;
-                </button>
               </div>
 
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
@@ -172,25 +162,6 @@ export default function App() {
           <GemstoneRecommender
             initialLagna={1}
             onNavigateToTab={(tab) => setActiveTab(tab)}
-          />
-        )}
-
-        {activeTab === 'planets' && (
-          <PlanetPosterGrid
-            selectedPlanetId={selectedPlanet}
-            onSelectPlanet={setSelectedPlanet}
-            onSelectHouse={(hNum) => {
-              setSelectedHouse(hNum);
-              setActiveTab('houses');
-            }}
-          />
-        )}
-
-        {activeTab === 'houses' && (
-          <HousesExplorer
-            selectedHouse={selectedHouse}
-            onSelectHouse={handleHouseSelect}
-            onSelectPlanet={handlePlanetSelect}
           />
         )}
 
@@ -289,11 +260,11 @@ export default function App() {
         onClose={() => setIsSearchOpen(false)}
         onSelectHouse={(h) => {
           setSelectedHouse(h);
-          setActiveTab('houses');
+          setActiveTab('chart');
         }}
         onSelectPlanet={(p) => {
           setSelectedPlanet(p);
-          setActiveTab('planets');
+          setActiveTab('chart');
         }}
       />
 

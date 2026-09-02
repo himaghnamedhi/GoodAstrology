@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { 
   Sparkles, 
   ShieldAlert, 
@@ -24,7 +24,9 @@ import {
   MapPin,
   User,
   ArrowRight,
-  RotateCcw
+  RotateCcw,
+  Search,
+  Globe
 } from 'lucide-react';
 import { 
   NAVARATNA_DATA, 
@@ -40,11 +42,12 @@ import {
   CalculatedBirthProfile 
 } from '../data/vedicAstrologyCalculator';
 import { PlanetId, ChartPlacement } from '../types/astrology';
+import { GemstoneImage } from './GemstoneImage';
 
 interface GemstoneRecommenderProps {
   initialLagna?: number;
   customPlacements?: ChartPlacement[];
-  onNavigateToTab?: (tab: 'chart' | 'planets' | 'houses' | 'builder') => void;
+  onNavigateToTab?: (tab: 'chart' | 'builder' | 'gemstones') => void;
 }
 
 export const GemstoneRecommender: React.FC<GemstoneRecommenderProps> = ({
@@ -79,6 +82,32 @@ export const GemstoneRecommender: React.FC<GemstoneRecommenderProps> = ({
     })
   );
   const [isCustomCity, setIsCustomCity] = useState<boolean>(false);
+
+  // City Search State
+  const [citySearchQuery, setCitySearchQuery] = useState<string>('');
+  const [isCityDropdownOpen, setIsCityDropdownOpen] = useState<boolean>(false);
+
+  // Filtered Cities for instant search
+  const filteredCities = useMemo(() => {
+    if (!citySearchQuery.trim()) return POPULAR_CITIES;
+    const q = citySearchQuery.toLowerCase().trim();
+    return POPULAR_CITIES.filter(c => 
+      c.name.toLowerCase().includes(q) || 
+      (c.stateOrRegion && c.stateOrRegion.toLowerCase().includes(q)) ||
+      c.country.toLowerCase().includes(q)
+    );
+  }, [citySearchQuery]);
+
+  // Selected city object
+  const currentCityObject = useMemo(() => {
+    return POPULAR_CITIES.find(c => c.name === birthDetails.city) || {
+      name: birthDetails.city,
+      country: 'Custom',
+      lat: birthDetails.latitude,
+      lng: birthDetails.longitude,
+      timezone: birthDetails.timezoneOffset
+    };
+  }, [birthDetails.city, birthDetails.latitude, birthDetails.longitude, birthDetails.timezoneOffset]);
 
   // Synergy Checker State
   const [synergyGem1, setSynergyGem1] = useState<string>('ruby');
@@ -296,7 +325,7 @@ export const GemstoneRecommender: React.FC<GemstoneRecommenderProps> = ({
               </div>
 
               {/* 4. Place of Birth */}
-              <div className="space-y-1.5">
+              <div className="space-y-1.5 relative">
                 <div className="flex items-center justify-between">
                   <label className="text-xs font-bold uppercase tracking-wider text-stone-700 flex items-center gap-1.5 font-vedic">
                     <MapPin className="w-3.5 h-3.5 text-amber-800" />
@@ -304,43 +333,173 @@ export const GemstoneRecommender: React.FC<GemstoneRecommenderProps> = ({
                   </label>
                   <button
                     type="button"
-                    onClick={() => setIsCustomCity(!isCustomCity)}
-                    className="text-[10px] text-amber-800 hover:text-amber-950 font-semibold cursor-pointer"
+                    onClick={() => {
+                      setIsCustomCity(!isCustomCity);
+                      setIsCityDropdownOpen(false);
+                    }}
+                    className="text-[10px] text-amber-800 hover:text-amber-950 font-semibold cursor-pointer underline underline-offset-2"
                   >
-                    {isCustomCity ? 'Pick Preset' : 'Custom Lat/Lng'}
+                    {isCustomCity ? 'Pick from 100+ Cities' : 'Custom Lat/Lng'}
                   </button>
                 </div>
 
                 {!isCustomCity ? (
-                  <select
-                    value={birthDetails.city}
-                    onChange={(e) => handleCitySelect(e.target.value)}
-                    className="w-full p-3 rounded-xl border border-stone-300 bg-stone-50 font-medium text-sm text-stone-900 focus:outline-none focus:ring-2 focus:ring-amber-500"
-                  >
-                    {POPULAR_CITIES.map((c) => (
-                      <option key={c.name} value={c.name}>
-                        {c.name}, {c.country}
-                      </option>
-                    ))}
-                  </select>
+                  <div className="relative">
+                    <button
+                      type="button"
+                      onClick={() => setIsCityDropdownOpen(!isCityDropdownOpen)}
+                      className="w-full p-3 rounded-xl border border-stone-300 bg-stone-50 font-medium text-sm text-stone-900 focus:outline-none focus:ring-2 focus:ring-amber-500 text-left flex items-center justify-between shadow-2xs hover:bg-white transition-colors cursor-pointer"
+                    >
+                      <div className="flex items-center gap-2 truncate pr-2">
+                        <MapPin className="w-4 h-4 text-amber-800 shrink-0" />
+                        <div className="truncate">
+                          <span className="font-bold text-stone-900">{birthDetails.city}</span>
+                          {currentCityObject.stateOrRegion && (
+                            <span className="text-stone-500 text-xs ml-1">({currentCityObject.stateOrRegion}, {currentCityObject.country})</span>
+                          )}
+                        </div>
+                      </div>
+                      <div className="text-[11px] font-semibold text-amber-900 bg-amber-100/70 px-2 py-0.5 rounded-md shrink-0">
+                        {birthDetails.latitude > 0 ? `${birthDetails.latitude.toFixed(1)}°N` : `${Math.abs(birthDetails.latitude).toFixed(1)}°S`}
+                      </div>
+                    </button>
+
+                    {/* Search Dropdown Popup */}
+                    {isCityDropdownOpen && (
+                      <div className="absolute top-full left-0 right-0 mt-2 z-50 bg-white rounded-2xl border border-stone-200 shadow-xl overflow-hidden animate-in fade-in slide-in-from-top-2 duration-150">
+                        {/* Search Input Bar */}
+                        <div className="p-3 border-b border-stone-100 bg-stone-50/80 flex items-center gap-2">
+                          <Search className="w-4 h-4 text-stone-400 shrink-0" />
+                          <input
+                            type="text"
+                            autoFocus
+                            placeholder="Type city, state, or country (e.g. Guwahati, Varanasi, Dallas)..."
+                            value={citySearchQuery}
+                            onChange={(e) => setCitySearchQuery(e.target.value)}
+                            className="w-full bg-transparent text-sm text-stone-900 placeholder:text-stone-400 focus:outline-none font-medium"
+                          />
+                          {citySearchQuery && (
+                            <button
+                              type="button"
+                              onClick={() => setCitySearchQuery('')}
+                              className="text-stone-400 hover:text-stone-600 p-0.5 rounded-full cursor-pointer"
+                            >
+                              <X className="w-3.5 h-3.5" />
+                            </button>
+                          )}
+                        </div>
+
+                        {/* City List */}
+                        <div className="max-h-60 overflow-y-auto divide-y divide-stone-100 p-1">
+                          {filteredCities.length > 0 ? (
+                            filteredCities.map((c) => {
+                              const isSelected = c.name === birthDetails.city;
+                              return (
+                                <button
+                                  key={`${c.name}-${c.country}-${c.lat}`}
+                                  type="button"
+                                  onClick={() => {
+                                    handleCitySelect(c.name);
+                                    setIsCityDropdownOpen(false);
+                                    setCitySearchQuery('');
+                                  }}
+                                  className={`w-full text-left px-3 py-2.5 rounded-xl transition-colors flex items-center justify-between text-xs cursor-pointer ${
+                                    isSelected 
+                                      ? 'bg-amber-900 text-amber-50 font-bold' 
+                                      : 'hover:bg-amber-50 text-stone-800'
+                                  }`}
+                                >
+                                  <div>
+                                    <div className="font-semibold text-sm flex items-center gap-1.5">
+                                      <span>{c.name}</span>
+                                      {c.stateOrRegion && (
+                                        <span className={isSelected ? 'text-amber-200 text-xs' : 'text-stone-500 text-xs font-normal'}>
+                                          • {c.stateOrRegion}
+                                        </span>
+                                      )}
+                                    </div>
+                                    <div className={isSelected ? 'text-amber-200/80 text-[11px]' : 'text-stone-400 text-[11px]'}>
+                                      {c.country} (UTC {c.timezone >= 0 ? `+${c.timezone}` : c.timezone}h)
+                                    </div>
+                                  </div>
+                                  <div className="text-right shrink-0">
+                                    <div className={`font-mono text-[11px] ${isSelected ? 'text-amber-100' : 'text-stone-500'}`}>
+                                      {c.lat.toFixed(2)}°, {c.lng.toFixed(2)}°
+                                    </div>
+                                  </div>
+                                </button>
+                              );
+                            })
+                          ) : (
+                            <div className="p-4 text-center text-xs text-stone-500 space-y-2">
+                              <p>No matching preset city found for "{citySearchQuery}".</p>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setIsCustomCity(true);
+                                  setIsCityDropdownOpen(false);
+                                }}
+                                className="px-3 py-1.5 bg-amber-100 hover:bg-amber-200 text-amber-900 rounded-lg text-xs font-semibold cursor-pointer"
+                              >
+                                Enter Custom Coordinates
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                        
+                        {/* Footer Info */}
+                        <div className="p-2.5 bg-stone-50 border-t border-stone-100 text-[11px] text-stone-500 flex items-center justify-between">
+                          <span className="flex items-center gap-1">
+                            <Globe className="w-3 h-3 text-amber-800" />
+                            <span>{POPULAR_CITIES.length}+ Accurate Global Coordinates</span>
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => setIsCityDropdownOpen(false)}
+                            className="text-stone-500 hover:text-stone-700 font-semibold cursor-pointer"
+                          >
+                            Close
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 ) : (
-                  <div className="grid grid-cols-2 gap-1.5">
-                    <input
-                      type="number"
-                      step="0.01"
-                      placeholder="Lat"
-                      value={birthDetails.latitude}
-                      onChange={(e) => setBirthDetails(prev => ({ ...prev, latitude: parseFloat(e.target.value) || 0 }))}
-                      className="p-3 rounded-xl border border-stone-300 bg-stone-50 text-xs font-medium"
-                    />
-                    <input
-                      type="number"
-                      step="0.01"
-                      placeholder="Lng"
-                      value={birthDetails.longitude}
-                      onChange={(e) => setBirthDetails(prev => ({ ...prev, longitude: parseFloat(e.target.value) || 0 }))}
-                      className="p-3 rounded-xl border border-stone-300 bg-stone-50 text-xs font-medium"
-                    />
+                  <div className="space-y-1.5">
+                    <div className="grid grid-cols-2 gap-1.5">
+                      <div>
+                        <label className="text-[10px] text-stone-500 block mb-0.5">Latitude (°N/S)</label>
+                        <input
+                          type="number"
+                          step="0.0001"
+                          placeholder="Lat (e.g. 26.14)"
+                          value={birthDetails.latitude}
+                          onChange={(e) => setBirthDetails(prev => ({ ...prev, latitude: parseFloat(e.target.value) || 0 }))}
+                          className="w-full p-2.5 rounded-xl border border-stone-300 bg-stone-50 text-xs font-medium text-stone-900 focus:outline-none focus:ring-2 focus:ring-amber-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[10px] text-stone-500 block mb-0.5">Longitude (°E/W)</label>
+                        <input
+                          type="number"
+                          step="0.0001"
+                          placeholder="Lng (e.g. 91.73)"
+                          value={birthDetails.longitude}
+                          onChange={(e) => setBirthDetails(prev => ({ ...prev, longitude: parseFloat(e.target.value) || 0 }))}
+                          className="w-full p-2.5 rounded-xl border border-stone-300 bg-stone-50 text-xs font-medium text-stone-900 focus:outline-none focus:ring-2 focus:ring-amber-500"
+                        />
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between pt-1">
+                      <span className="text-[10px] text-stone-500">Timezone Offset (Hrs from UTC)</span>
+                      <input
+                        type="number"
+                        step="0.25"
+                        value={birthDetails.timezoneOffset}
+                        onChange={(e) => setBirthDetails(prev => ({ ...prev, timezoneOffset: parseFloat(e.target.value) || 0 }))}
+                        className="w-20 p-1.5 rounded-lg border border-stone-300 bg-stone-50 text-xs font-medium text-right text-stone-900"
+                      />
+                    </div>
                   </div>
                 )}
               </div>
@@ -460,9 +619,9 @@ export const GemstoneRecommender: React.FC<GemstoneRecommenderProps> = ({
                         <span className="text-xs font-bold text-stone-500">{rec.houseRulership}</span>
                       </div>
 
-                      <div className="flex items-center gap-3 mb-3">
-                        <div className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${gem.gradient} shadow-md flex items-center justify-center text-white text-lg font-bold ring-2 ring-white`}>
-                          {gem.name[0]}
+                      <div className="flex items-center gap-3.5 mb-3">
+                        <div className="p-1.5 rounded-2xl bg-stone-50 border border-stone-200/80 shadow-inner shrink-0 group-hover:scale-105 transition-transform">
+                          <GemstoneImage gemId={rec.gemId} size="md" />
                         </div>
                         <div>
                           <h4 className="text-base font-bold text-stone-900 font-vedic">{rec.gemName}</h4>
@@ -516,9 +675,9 @@ export const GemstoneRecommender: React.FC<GemstoneRecommenderProps> = ({
                         <span className="text-xs font-bold text-stone-500">{rec.houseRulership}</span>
                       </div>
 
-                      <div className="flex items-center gap-3 mb-3">
-                        <div className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${gem.gradient} shadow-md flex items-center justify-center text-white text-lg font-bold ring-2 ring-white`}>
-                          {gem.name[0]}
+                      <div className="flex items-center gap-3.5 mb-3">
+                        <div className="p-1.5 rounded-2xl bg-stone-50 border border-stone-200/80 shadow-inner shrink-0 group-hover:scale-105 transition-transform">
+                          <GemstoneImage gemId={rec.gemId} size="md" />
                         </div>
                         <div>
                           <h4 className="text-base font-bold text-stone-900 font-vedic">{rec.gemName}</h4>
@@ -572,9 +731,9 @@ export const GemstoneRecommender: React.FC<GemstoneRecommenderProps> = ({
                         <span className="text-xs font-bold text-stone-500">{rec.houseRulership}</span>
                       </div>
 
-                      <div className="flex items-center gap-3 mb-3">
-                        <div className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${gem.gradient} shadow-md flex items-center justify-center text-white text-lg font-bold ring-2 ring-white`}>
-                          {gem.name[0]}
+                      <div className="flex items-center gap-3.5 mb-3">
+                        <div className="p-1.5 rounded-2xl bg-stone-50 border border-stone-200/80 shadow-inner shrink-0 group-hover:scale-105 transition-transform">
+                          <GemstoneImage gemId={rec.gemId} size="md" />
                         </div>
                         <div>
                           <h4 className="text-base font-bold text-stone-900 font-vedic">{rec.gemName}</h4>
@@ -627,8 +786,8 @@ export const GemstoneRecommender: React.FC<GemstoneRecommenderProps> = ({
                 </span>
               </div>
               <div className="flex items-center gap-3">
-                <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${birthMoonGemData.gradient} text-white flex items-center justify-center font-bold text-base shadow-sm`}>
-                  {birthMoonGemData.name[0]}
+                <div className="p-1 rounded-xl bg-stone-50 border border-stone-200 shrink-0">
+                  <GemstoneImage gemId={birthMoonGemData.id} size="sm" />
                 </div>
                 <div>
                   <h4 className="text-sm font-bold text-stone-900 font-vedic">{birthMoonGemData.name} ({birthMoonGemData.sanskritName})</h4>
@@ -658,8 +817,8 @@ export const GemstoneRecommender: React.FC<GemstoneRecommenderProps> = ({
                 </span>
               </div>
               <div className="flex items-center gap-3">
-                <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${nameDestinyGemData.gradient} text-white flex items-center justify-center font-bold text-base shadow-sm`}>
-                  {nameDestinyGemData.name[0]}
+                <div className="p-1 rounded-xl bg-stone-50 border border-stone-200 shrink-0">
+                  <GemstoneImage gemId={nameDestinyGemData.id} size="sm" />
                 </div>
                 <div>
                   <h4 className="text-sm font-bold text-stone-900 font-vedic">{nameDestinyGemData.name} ({nameDestinyGemData.sanskritName})</h4>
@@ -810,9 +969,9 @@ export const GemstoneRecommender: React.FC<GemstoneRecommenderProps> = ({
                       <span className="text-xs font-bold text-stone-500">{rec.houseRulership}</span>
                     </div>
 
-                    <div className="flex items-center gap-3 mb-3">
-                      <div className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${gem.gradient} shadow-md flex items-center justify-center text-white text-lg font-bold ring-2 ring-white`}>
-                        {gem.name[0]}
+                    <div className="flex items-center gap-3.5 mb-3">
+                      <div className="p-1.5 rounded-2xl bg-stone-50 border border-stone-200/80 shadow-inner shrink-0 group-hover:scale-105 transition-transform">
+                        <GemstoneImage gemId={rec.gemId} size="md" />
                       </div>
                       <div>
                         <h3 className="text-base font-bold text-stone-900 font-vedic">{rec.gemName}</h3>
@@ -866,9 +1025,9 @@ export const GemstoneRecommender: React.FC<GemstoneRecommenderProps> = ({
                       <span className="text-xs font-bold text-stone-500">{rec.houseRulership}</span>
                     </div>
 
-                    <div className="flex items-center gap-3 mb-3">
-                      <div className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${gem.gradient} shadow-md flex items-center justify-center text-white text-lg font-bold ring-2 ring-white`}>
-                        {gem.name[0]}
+                    <div className="flex items-center gap-3.5 mb-3">
+                      <div className="p-1.5 rounded-2xl bg-stone-50 border border-stone-200/80 shadow-inner shrink-0 group-hover:scale-105 transition-transform">
+                        <GemstoneImage gemId={rec.gemId} size="md" />
                       </div>
                       <div>
                         <h3 className="text-base font-bold text-stone-900 font-vedic">{rec.gemName}</h3>
@@ -922,9 +1081,9 @@ export const GemstoneRecommender: React.FC<GemstoneRecommenderProps> = ({
                       <span className="text-xs font-bold text-stone-500">{rec.houseRulership}</span>
                     </div>
 
-                    <div className="flex items-center gap-3 mb-3">
-                      <div className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${gem.gradient} shadow-md flex items-center justify-center text-white text-lg font-bold ring-2 ring-white`}>
-                        {gem.name[0]}
+                    <div className="flex items-center gap-3.5 mb-3">
+                      <div className="p-1.5 rounded-2xl bg-stone-50 border border-stone-200/80 shadow-inner shrink-0 group-hover:scale-105 transition-transform">
+                        <GemstoneImage gemId={rec.gemId} size="md" />
                       </div>
                       <div>
                         <h3 className="text-base font-bold text-stone-900 font-vedic">{rec.gemName}</h3>
@@ -1141,10 +1300,17 @@ export const GemstoneRecommender: React.FC<GemstoneRecommenderProps> = ({
             </div>
 
             {/* Compatibility Verdict Banner */}
-            <div className={`p-6 rounded-2xl border ${compatibility.badgeBg} space-y-3`}>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <span className="text-base font-bold font-vedic">
+            <div className={`p-6 rounded-2xl border ${compatibility.badgeBg} space-y-4`}>
+              <div className="flex flex-wrap items-center justify-between gap-4">
+                <div className="flex items-center gap-3">
+                  <div className="p-1 rounded-xl bg-white border border-stone-200 shadow-sm">
+                    <GemstoneImage gemId={synergyGem1} size="md" />
+                  </div>
+                  <span className="text-stone-400 font-bold text-sm">+</span>
+                  <div className="p-1 rounded-xl bg-white border border-stone-200 shadow-sm">
+                    <GemstoneImage gemId={synergyGem2} size="md" />
+                  </div>
+                  <span className="text-base font-bold font-vedic ml-1">
                     {compatibility.gem1.name} + {compatibility.gem2.name}
                   </span>
                 </div>
@@ -1220,8 +1386,8 @@ export const GemstoneRecommender: React.FC<GemstoneRecommenderProps> = ({
               >
                 <div>
                   <div className="flex items-center gap-3.5 mb-3">
-                    <div className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${gem.gradient} shadow-md flex items-center justify-center text-white text-lg font-bold ring-2 ring-white shrink-0`}>
-                      {gem.name[0]}
+                    <div className="p-1.5 rounded-2xl bg-stone-50 border border-stone-200/80 shadow-inner shrink-0 group-hover:scale-105 transition-transform">
+                      <GemstoneImage gemId={gem.id} size="md" />
                     </div>
                     <div>
                       <h3 className="text-base font-bold text-stone-900 font-vedic group-hover:text-amber-950">{gem.name}</h3>
@@ -1373,8 +1539,8 @@ export const GemstoneRecommender: React.FC<GemstoneRecommenderProps> = ({
               </button>
 
               <div className="flex items-center gap-4">
-                <div className="w-14 h-14 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center text-2xl font-bold border border-white/30 shadow-inner">
-                  {selectedGemData.name[0]}
+                <div className="p-2 rounded-2xl bg-white/20 backdrop-blur-md border border-white/30 shadow-inner shrink-0">
+                  <GemstoneImage gemId={selectedGemData.id} size="lg" />
                 </div>
                 <div>
                   <div className="text-xs font-semibold uppercase tracking-wider text-white/80">

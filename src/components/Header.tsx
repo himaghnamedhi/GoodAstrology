@@ -1,10 +1,10 @@
 import React from 'react';
-import { Sparkles, Compass, Sun, Search, Share2, Layers, Gem } from 'lucide-react';
+import { Sparkles, Compass, Search, Share2, Gem } from 'lucide-react';
 import { ChartStyle } from '../types/astrology';
 
 interface HeaderProps {
-  activeTab: 'chart' | 'planets' | 'houses' | 'builder' | 'gemstones';
-  setActiveTab: (tab: 'chart' | 'planets' | 'houses' | 'builder' | 'gemstones') => void;
+  activeTab: 'chart' | 'builder' | 'gemstones';
+  setActiveTab: (tab: 'chart' | 'builder' | 'gemstones') => void;
   chartStyle: ChartStyle;
   setChartStyle: (style: ChartStyle) => void;
   onOpenSearch: () => void;
@@ -40,7 +40,7 @@ export const Header: React.FC<HeaderProps> = ({
               <div className="flex items-baseline gap-1.5">
                 <span className="text-xl sm:text-2xl font-extrabold tracking-tight text-amber-950 font-vedic leading-tight">GoodAstrology</span>
               </div>
-              <p className="text-[11px] text-stone-500 hidden sm:block">Vedic Astrology Bhavas, House Charts & 9 Planets in 12 Houses</p>
+              <p className="text-[11px] text-stone-500 hidden sm:block">Vedic Astrology House Charts, Kundli Reader & Gemstone Recommendations</p>
             </div>
           </div>
 
@@ -84,32 +84,6 @@ export const Header: React.FC<HeaderProps> = ({
               <Gem className="w-4 h-4" />
               <span>Gemstones</span>
             </button>
-
-            <button
-              id="nav-tab-planets"
-              onClick={() => setActiveTab('planets')}
-              className={`px-3.5 py-2 rounded-lg transition-all flex items-center gap-2 ${
-                activeTab === 'planets'
-                  ? 'bg-amber-900 text-amber-50 shadow-xs font-semibold'
-                  : 'text-stone-700 hover:text-stone-900 hover:bg-stone-100'
-              }`}
-            >
-              <Sun className="w-4 h-4" />
-              <span>9 Planets</span>
-            </button>
-
-            <button
-              id="nav-tab-houses"
-              onClick={() => setActiveTab('houses')}
-              className={`px-3.5 py-2 rounded-lg transition-all flex items-center gap-2 ${
-                activeTab === 'houses'
-                  ? 'bg-amber-900 text-amber-50 shadow-xs font-semibold'
-                  : 'text-stone-700 hover:text-stone-900 hover:bg-stone-100'
-              }`}
-            >
-              <Layers className="w-4 h-4" />
-              <span>12 Bhavas</span>
-            </button>
           </nav>
 
           {/* Quick Actions */}
@@ -142,8 +116,6 @@ export const Header: React.FC<HeaderProps> = ({
             { id: 'chart', label: 'House Chart', icon: Compass },
             { id: 'builder', label: 'Kundli Reader', icon: Sparkles },
             { id: 'gemstones', label: 'Gemstones', icon: Gem },
-            { id: 'planets', label: '9 Planets', icon: Sun },
-            { id: 'houses', label: '12 Bhavas', icon: Layers },
           ].map((item) => {
             const Icon = item.icon;
             const isActive = activeTab === item.id;
