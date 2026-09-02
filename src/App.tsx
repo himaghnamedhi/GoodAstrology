@@ -6,7 +6,7 @@ import { PlanetPosterGrid } from './components/PlanetPosterGrid';
 import { HousesExplorer } from './components/HousesExplorer';
 import { KundliBuilder } from './components/KundliBuilder';
 import { SearchModal } from './components/SearchModal';
-import { PrintCheatSheetModal } from './components/PrintCheatSheetModal';
+import { CustomReportModal } from './components/CustomReportModal';
 import { HOUSES_DATA } from './data/housesData';
 import { PLANETS_DATA } from './data/planetsData';
 import { Sparkles, Layers, ArrowUp } from 'lucide-react';
@@ -32,7 +32,7 @@ export default function App() {
 
   // Modal states
   const [isSearchOpen, setIsSearchOpen] = useState(false);
-  const [isPrintOpen, setIsPrintOpen] = useState(false);
+  const [isReportOpen, setIsReportOpen] = useState(false);
 
   // Group placements by house number for the chart renderer
   const houseOccupants: Record<HouseNumber, PlanetId[]> = React.useMemo(() => {
@@ -68,7 +68,6 @@ export default function App() {
         chartStyle={chartStyle}
         setChartStyle={setChartStyle}
         onOpenSearch={() => setIsSearchOpen(true)}
-        onOpenPrint={() => setIsPrintOpen(true)}
       />
 
       {/* Main App Container */}
@@ -85,6 +84,7 @@ export default function App() {
               setChartStyle={setChartStyle}
               customPlacements={houseOccupants}
               onInspectPlanet={handlePlanetSelect}
+              onOpenReport={() => setIsReportOpen(true)}
             />
 
             {/* Quick 12 Houses Grid Shortcut Section */}
@@ -182,6 +182,7 @@ export default function App() {
               setActiveTab('chart');
             }}
             onSelectPlanet={handlePlanetSelect}
+            onOpenReport={() => setIsReportOpen(true)}
           />
         )}
 
@@ -191,7 +192,7 @@ export default function App() {
       <footer className="bg-stone-900 text-stone-300 border-t border-stone-800 mt-16 pt-12 pb-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
           
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             
             {/* Col 1: About */}
             <div className="space-y-3">
@@ -204,64 +205,39 @@ export default function App() {
               </p>
             </div>
 
-            {/* Col 2: 12 Houses */}
-            <div className="space-y-2">
-              <h4 className="text-xs font-bold uppercase tracking-wider text-amber-400 font-vedic">12 Bhavas (Houses)</h4>
-              <div className="grid grid-cols-2 gap-1 text-xs text-stone-400">
-                <button onClick={() => { setSelectedHouse(1); setActiveTab('houses'); }} className="text-left hover:text-white">1st H: Lagna (Self)</button>
-                <button onClick={() => { setSelectedHouse(2); setActiveTab('houses'); }} className="text-left hover:text-white">2nd H: Dhana (Wealth)</button>
-                <button onClick={() => { setSelectedHouse(3); setActiveTab('houses'); }} className="text-left hover:text-white">3rd H: Sahaja (Courage)</button>
-                <button onClick={() => { setSelectedHouse(4); setActiveTab('houses'); }} className="text-left hover:text-white">4th H: Bandhu (Home)</button>
-                <button onClick={() => { setSelectedHouse(5); setActiveTab('houses'); }} className="text-left hover:text-white">5th H: Putra (Intellect)</button>
-                <button onClick={() => { setSelectedHouse(6); setActiveTab('houses'); }} className="text-left hover:text-white">6th H: Ari (Enemies)</button>
-                <button onClick={() => { setSelectedHouse(7); setActiveTab('houses'); }} className="text-left hover:text-white">7th H: Yuvati (Spouse)</button>
-                <button onClick={() => { setSelectedHouse(8); setActiveTab('houses'); }} className="text-left hover:text-white">8th H: Randhra (Occult)</button>
-                <button onClick={() => { setSelectedHouse(9); setActiveTab('houses'); }} className="text-left hover:text-white">9th H: Dharma (Luck)</button>
-                <button onClick={() => { setSelectedHouse(10); setActiveTab('houses'); }} className="text-left hover:text-white">10th H: Karma (Career)</button>
-                <button onClick={() => { setSelectedHouse(11); setActiveTab('houses'); }} className="text-left hover:text-white">11th H: Labha (Gains)</button>
-                <button onClick={() => { setSelectedHouse(12); setActiveTab('houses'); }} className="text-left hover:text-white">12th H: Vyaya (Moksha)</button>
-              </div>
-            </div>
-
-            {/* Col 3: 9 Planets */}
-            <div className="space-y-2">
-              <h4 className="text-xs font-bold uppercase tracking-wider text-amber-400 font-vedic">9 Navagrahas (Planets)</h4>
-              <div className="grid grid-cols-2 gap-1 text-xs text-stone-400">
-                {(Object.keys(PLANETS_DATA) as PlanetId[]).map((pId) => (
-                  <button
-                    key={pId}
-                    onClick={() => handlePlanetSelect(pId)}
-                    className="text-left hover:text-white"
-                  >
-                    {PLANETS_DATA[pId].avatar} {PLANETS_DATA[pId].name}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Col 4: Quick Tools */}
+            {/* Col 2: Tools */}
             <div className="space-y-3">
-              <h4 className="text-xs font-bold uppercase tracking-wider text-amber-400 font-vedic">Kundli Tools</h4>
-              <ul className="space-y-1.5 text-xs text-stone-400">
+              <h4 className="text-xs font-bold uppercase tracking-wider text-amber-400 font-vedic">Astrological Tools</h4>
+              <ul className="space-y-2 text-xs text-stone-400">
                 <li>
-                  <button onClick={() => setActiveTab('chart')} className="hover:text-white">
-                    • Interactive Diamond House Chart
+                  <button
+                    onClick={() => setActiveTab('builder')}
+                    className="text-stone-200 hover:text-amber-400 font-medium flex items-center gap-1.5 transition-colors group"
+                  >
+                    <span className="text-amber-400 group-hover:translate-x-0.5 transition-transform">→</span>
+                    <span>Kundli Reader</span>
+                    <span className="text-[10px] px-1.5 py-0.2 rounded bg-amber-900/80 text-amber-200 border border-amber-700/60 font-semibold">Active</span>
                   </button>
                 </li>
-                <li>
-                  <button onClick={() => setActiveTab('builder')} className="hover:text-white">
-                    • Custom Placement Builder & Yogas
-                  </button>
+                <li className="flex items-center gap-1.5 text-stone-500 cursor-not-allowed">
+                  <span>•</span>
+                  <span>Dasha & Antardasha Calculator</span>
+                  <span className="text-[9.5px] px-1.5 py-0.2 rounded bg-stone-800 text-stone-400 border border-stone-700 font-medium">Coming Soon</span>
                 </li>
-                <li>
-                  <button onClick={() => setIsPrintOpen(true)} className="hover:text-white">
-                    • Printable Kundli Cheat Sheet
-                  </button>
+                <li className="flex items-center gap-1.5 text-stone-500 cursor-not-allowed">
+                  <span>•</span>
+                  <span>Kundli Matching & Guna Milan</span>
+                  <span className="text-[9.5px] px-1.5 py-0.2 rounded bg-stone-800 text-stone-400 border border-stone-700 font-medium">Coming Soon</span>
                 </li>
-                <li>
-                  <button onClick={() => setIsSearchOpen(true)} className="hover:text-white">
-                    • Life Query & Symptom Search
-                  </button>
+                <li className="flex items-center gap-1.5 text-stone-500 cursor-not-allowed">
+                  <span>•</span>
+                  <span>Transit & Sade Sati Tracker</span>
+                  <span className="text-[9.5px] px-1.5 py-0.2 rounded bg-stone-800 text-stone-400 border border-stone-700 font-medium">Coming Soon</span>
+                </li>
+                <li className="flex items-center gap-1.5 text-stone-500 cursor-not-allowed">
+                  <span>•</span>
+                  <span>Vedic Gemstone Recommender</span>
+                  <span className="text-[9.5px] px-1.5 py-0.2 rounded bg-stone-800 text-stone-400 border border-stone-700 font-medium">Coming Soon</span>
                 </li>
               </ul>
             </div>
@@ -307,10 +283,12 @@ export default function App() {
         }}
       />
 
-      {/* Printable Cheat Sheet Modal */}
-      <PrintCheatSheetModal
-        isOpen={isPrintOpen}
-        onClose={() => setIsPrintOpen(false)}
+      {/* Printable Custom Kundli Report Modal */}
+      <CustomReportModal
+        isOpen={isReportOpen}
+        onClose={() => setIsReportOpen(false)}
+        placements={customPlacements}
+        chartStyle={chartStyle}
       />
 
     </div>

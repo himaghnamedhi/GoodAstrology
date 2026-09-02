@@ -2,13 +2,14 @@ import React, { useState } from 'react';
 import { HouseNumber, PlanetId } from '../types/astrology';
 import { PLANETS_DATA } from '../data/planetsData';
 import { HOUSES_DATA } from '../data/housesData';
-import { Sparkles, RefreshCw, Award, BookOpen, Check, Share2, Compass, AlertCircle } from 'lucide-react';
+import { Sparkles, RefreshCw, Award, BookOpen, Printer, CheckCircle2, Compass, FileText } from 'lucide-react';
 
 interface KundliBuilderProps {
   placements: Record<PlanetId, HouseNumber>;
   setPlacements: React.Dispatch<React.SetStateAction<Record<PlanetId, HouseNumber>>>;
   onSelectHouse: (house: HouseNumber) => void;
   onSelectPlanet: (planetId: PlanetId) => void;
+  onOpenReport?: () => void;
 }
 
 export const KUNDLI_PRESETS: { name: string; desc: string; placements: Record<PlanetId, HouseNumber> }[] = [
@@ -79,6 +80,7 @@ export const KundliBuilder: React.FC<KundliBuilderProps> = ({
   setPlacements,
   onSelectHouse,
   onSelectPlanet,
+  onOpenReport,
 }) => {
   const [selectedPreset, setSelectedPreset] = useState<string>('');
 
@@ -119,13 +121,26 @@ export const KundliBuilder: React.FC<KundliBuilderProps> = ({
             </p>
           </div>
 
-          <button
-            onClick={() => handlePresetSelect(KUNDLI_PRESETS[0].name)}
-            className="px-3.5 py-1.5 rounded-xl bg-amber-100/80 hover:bg-amber-200 text-amber-900 border border-amber-300 text-xs font-semibold flex items-center gap-1.5 self-start sm:self-auto"
-          >
-            <RefreshCw className="w-3.5 h-3.5" />
-            Reset to Default
-          </button>
+          <div className="flex items-center gap-2 self-start sm:self-auto">
+            {onOpenReport && (
+              <button
+                id="btn-builder-print-report"
+                onClick={onOpenReport}
+                className="px-4 py-2 rounded-xl bg-amber-900 hover:bg-amber-950 text-amber-50 shadow-xs text-xs font-bold flex items-center gap-2 transition-all active:scale-95"
+              >
+                <Printer className="w-4 h-4 text-amber-300" />
+                <span>Print Custom Report</span>
+              </button>
+            )}
+
+            <button
+              onClick={() => handlePresetSelect(KUNDLI_PRESETS[0].name)}
+              className="px-3 py-2 rounded-xl bg-amber-100/80 hover:bg-amber-200 text-amber-900 border border-amber-300 text-xs font-semibold flex items-center gap-1.5"
+            >
+              <RefreshCw className="w-3.5 h-3.5" />
+              Reset
+            </button>
+          </div>
         </div>
 
         {/* Preset Yogas */}
@@ -227,6 +242,33 @@ export const KundliBuilder: React.FC<KundliBuilderProps> = ({
           })}
         </div>
       </div>
+
+      {/* Printable Horoscope Report Callout Banner */}
+      {onOpenReport && (
+        <div className="bg-gradient-to-r from-amber-900 via-amber-950 to-stone-900 text-amber-50 p-6 sm:p-7 rounded-3xl shadow-lg border border-amber-800/40 flex flex-col md:flex-row items-center justify-between gap-5">
+          <div className="space-y-1.5 text-center md:text-left">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-800/60 border border-amber-600/40 text-amber-200 text-xs font-semibold">
+              <CheckCircle2 className="w-3.5 h-3.5 text-amber-300" />
+              <span>All 9 Navagrahas Assigned (100% Configured)</span>
+            </div>
+            <h3 className="text-xl sm:text-2xl font-bold font-vedic text-white">
+              Your Customized Kundli Horoscope Report is Ready
+            </h3>
+            <p className="text-xs text-amber-200/80 max-w-xl leading-relaxed">
+              Generate a complete, printable Vedic Janam Patrika with your custom visual chart, 12 Bhavas breakdown, detected classical Yogas, and karmic remedies.
+            </p>
+          </div>
+
+          <button
+            id="btn-print-kundli-full-report"
+            onClick={onOpenReport}
+            className="px-6 py-3 rounded-2xl bg-amber-400 hover:bg-amber-300 text-amber-950 font-bold text-sm flex items-center gap-2.5 shadow-md hover:shadow-lg transition-all active:scale-95 shrink-0"
+          >
+            <Printer className="w-4 h-4 text-amber-950" />
+            <span>Generate & Print Report</span>
+          </button>
+        </div>
+      )}
 
       {/* Generated Kundli Synthesis & Reading */}
       <div className="bg-[#FAF8F5] p-5 sm:p-7 rounded-3xl border border-amber-900/15 shadow-sm space-y-4">

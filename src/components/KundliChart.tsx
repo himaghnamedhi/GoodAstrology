@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { HouseNumber, PlanetId, ChartStyle } from '../types/astrology';
 import { HOUSES_DATA, NORTH_CHART_GEOMETRY } from '../data/housesData';
 import { PLANETS_DATA } from '../data/planetsData';
-import { Sparkles, Info, Eye, Compass, CheckCircle2, ChevronRight, Award, ShieldAlert, Star } from 'lucide-react';
+import { Sparkles, Info, Eye, Compass, CheckCircle2, ChevronRight, Award, ShieldAlert, Star, Printer } from 'lucide-react';
 
 interface KundliChartProps {
   selectedHouse: HouseNumber | null;
@@ -11,6 +11,7 @@ interface KundliChartProps {
   setChartStyle: (style: ChartStyle) => void;
   customPlacements?: Record<HouseNumber, PlanetId[]>;
   onInspectPlanet?: (planetId: PlanetId) => void;
+  onOpenReport?: () => void;
 }
 
 export const KundliChart: React.FC<KundliChartProps> = ({
@@ -30,6 +31,7 @@ export const KundliChart: React.FC<KundliChartProps> = ({
     12: ['ketu'],
   },
   onInspectPlanet,
+  onOpenReport,
 }) => {
   const [hoveredHouse, setHoveredHouse] = useState<HouseNumber | null>(null);
   const [highlightCategory, setHighlightCategory] = useState<'all' | 'kendra' | 'trikona' | 'upachaya' | 'dusthana' | 'maraka'>('all');
@@ -121,6 +123,18 @@ export const KundliChart: React.FC<KundliChartProps> = ({
               Signs
             </button>
           </div>
+
+          {onOpenReport && (
+            <button
+              id="btn-chart-print-report"
+              onClick={onOpenReport}
+              className="px-3 py-1.5 rounded-xl bg-amber-900 hover:bg-amber-950 text-amber-50 shadow-xs text-xs font-bold flex items-center gap-1.5 transition-all active:scale-95"
+              title="Print full horoscope report"
+            >
+              <Printer className="w-3.5 h-3.5 text-amber-300" />
+              <span>Print Report</span>
+            </button>
+          )}
         </div>
       </div>
 
