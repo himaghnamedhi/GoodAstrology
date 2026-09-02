@@ -5,6 +5,7 @@ import { KundliChart } from './components/KundliChart';
 import { PlanetPosterGrid } from './components/PlanetPosterGrid';
 import { HousesExplorer } from './components/HousesExplorer';
 import { KundliBuilder } from './components/KundliBuilder';
+import { GemstoneRecommender } from './components/GemstoneRecommender';
 import { SearchModal } from './components/SearchModal';
 import { CustomReportModal } from './components/CustomReportModal';
 import { HOUSES_DATA } from './data/housesData';
@@ -12,7 +13,7 @@ import { PLANETS_DATA } from './data/planetsData';
 import { Sparkles, Layers, ArrowUp } from 'lucide-react';
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState<'chart' | 'planets' | 'houses' | 'builder'>('chart');
+  const [activeTab, setActiveTab] = useState<'chart' | 'planets' | 'houses' | 'builder' | 'gemstones'>('chart');
   const [selectedHouse, setSelectedHouse] = useState<HouseNumber>(1);
   const [selectedPlanet, setSelectedPlanet] = useState<PlanetId>('sun');
   const [chartStyle, setChartStyle] = useState<ChartStyle>('north');
@@ -154,6 +155,26 @@ export default function App() {
           </div>
         )}
 
+        {activeTab === 'builder' && (
+          <KundliBuilder
+            placements={customPlacements}
+            setPlacements={setCustomPlacements}
+            onSelectHouse={(hNum) => {
+              setSelectedHouse(hNum);
+              setActiveTab('chart');
+            }}
+            onSelectPlanet={handlePlanetSelect}
+            onOpenReport={() => setIsReportOpen(true)}
+          />
+        )}
+
+        {activeTab === 'gemstones' && (
+          <GemstoneRecommender
+            initialLagna={1}
+            onNavigateToTab={(tab) => setActiveTab(tab)}
+          />
+        )}
+
         {activeTab === 'planets' && (
           <PlanetPosterGrid
             selectedPlanetId={selectedPlanet}
@@ -173,19 +194,6 @@ export default function App() {
           />
         )}
 
-        {activeTab === 'builder' && (
-          <KundliBuilder
-            placements={customPlacements}
-            setPlacements={setCustomPlacements}
-            onSelectHouse={(hNum) => {
-              setSelectedHouse(hNum);
-              setActiveTab('chart');
-            }}
-            onSelectPlanet={handlePlanetSelect}
-            onOpenReport={() => setIsReportOpen(true)}
-          />
-        )}
-
       </main>
 
       {/* Footer */}
@@ -198,10 +206,10 @@ export default function App() {
             <div className="space-y-3">
               <div className="flex items-center gap-2">
                 <Sparkles className="w-5 h-5 text-amber-400" />
-                <span className="text-xl font-bold font-vedic text-white">goodastrology</span>
+                <span className="text-xl font-bold font-vedic text-white">GoodAstrology</span>
               </div>
               <p className="text-xs text-stone-400 leading-relaxed">
-                Authentic, accessible Vedic astrology knowledge base. Interactive Kundli house chart reader, 9 Navagrahas in 12 houses reference posters, and astrological remedies.
+                Authentic, accessible Vedic astrology knowledge base. Interactive Kundli house chart reader, 9 Navagrahas in 12 houses reference posters, and astrological gemstone remedies.
               </p>
             </div>
 
@@ -216,7 +224,15 @@ export default function App() {
                   >
                     <span className="text-amber-400 group-hover:translate-x-0.5 transition-transform">→</span>
                     <span>Kundli Reader</span>
-                    <span className="text-[10px] px-1.5 py-0.2 rounded bg-amber-900/80 text-amber-200 border border-amber-700/60 font-semibold">Active</span>
+                  </button>
+                </li>
+                <li>
+                  <button
+                    onClick={() => setActiveTab('gemstones')}
+                    className="text-stone-200 hover:text-amber-400 font-medium flex items-center gap-1.5 transition-colors group"
+                  >
+                    <span className="text-amber-400 group-hover:translate-x-0.5 transition-transform">→</span>
+                    <span>Vedic Gemstone Recommender</span>
                   </button>
                 </li>
                 <li className="flex items-center gap-1.5 text-stone-500 cursor-not-allowed">
@@ -234,20 +250,16 @@ export default function App() {
                   <span>Transit & Sade Sati Tracker</span>
                   <span className="text-[9.5px] px-1.5 py-0.2 rounded bg-stone-800 text-stone-400 border border-stone-700 font-medium">Coming Soon</span>
                 </li>
-                <li className="flex items-center gap-1.5 text-stone-500 cursor-not-allowed">
-                  <span>•</span>
-                  <span>Vedic Gemstone Recommender</span>
-                  <span className="text-[9.5px] px-1.5 py-0.2 rounded bg-stone-800 text-stone-400 border border-stone-700 font-medium">Coming Soon</span>
-                </li>
               </ul>
             </div>
 
           </div>
 
           {/* Bottom Bar */}
-          <div className="pt-8 border-t border-stone-800 flex flex-col sm:flex-row items-center justify-between text-xs text-stone-400 gap-4">
-            <p>
-              © {new Date().getFullYear()} <strong className="text-stone-200">goodastrology</strong>. Developed by{' '}
+          <div className="pt-8 border-t border-stone-800 grid grid-cols-1 sm:grid-cols-3 items-center text-xs text-stone-400 gap-4">
+            <div className="hidden sm:block" />
+            <p className="text-center">
+              © {new Date().getFullYear()} <strong className="text-stone-200">GoodAstrology</strong>. Developed by{' '}
               <a
                 href="https://x.com/himaghnamedhi"
                 target="_blank"
@@ -257,13 +269,15 @@ export default function App() {
                 Himaghna Medhi
               </a>
             </p>
-            <button
-              onClick={scrollToTop}
-              className="flex items-center gap-1 text-amber-400 hover:text-amber-300 font-medium"
-            >
-              <span>Back to Top</span>
-              <ArrowUp className="w-3.5 h-3.5" />
-            </button>
+            <div className="flex justify-center sm:justify-end">
+              <button
+                onClick={scrollToTop}
+                className="flex items-center gap-1 text-amber-400 hover:text-amber-300 font-medium cursor-pointer"
+              >
+                <span>Back to Top</span>
+                <ArrowUp className="w-3.5 h-3.5" />
+              </button>
+            </div>
           </div>
 
         </div>
