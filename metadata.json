@@ -1,0 +1,7 @@
+{
+  "name": "goodastrology",
+  "description": "Vedic Astrology portal with interactive Kundli house chart, 12 bhavas guide, and 9 planets in all 12 houses effects.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
+
