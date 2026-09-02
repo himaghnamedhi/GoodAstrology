@@ -10,6 +10,7 @@ import { PrintCheatSheetModal } from './components/PrintCheatSheetModal';
 import { HOUSES_DATA } from './data/housesData';
 import { PLANETS_DATA } from './data/planetsData';
 import { Sparkles, Layers, ArrowUp } from 'lucide-react';
+import { Analytics } from '@vercel/analytics/react';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<'chart' | 'planets' | 'houses' | 'builder'>('chart');
@@ -312,6 +313,9 @@ export default function App() {
         isOpen={isPrintOpen}
         onClose={() => setIsPrintOpen(false)}
       />
+
+      {/* Vercel Web Analytics */}
+      <Analytics />
 
     </div>
   );
