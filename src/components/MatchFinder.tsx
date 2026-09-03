@@ -237,34 +237,95 @@ Calculated via GoodAstrology Match Finder`;
       {/* 2. TWO-PARTNER BIRTH INPUT FORMS */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         
-        {/* PARTNER 1 (Groom / Boy) */}
-        <div className="bg-white rounded-3xl p-5 sm:p-6 border border-amber-900/15 shadow-xs space-y-5">
-          <div className="flex items-center justify-between pb-3 border-b border-stone-200">
+        {/* PARTNER 1 */}
+        <div className={`rounded-3xl p-5 sm:p-6 border shadow-xs space-y-5 transition-all duration-200 ${
+          p1Details.gender === 'male'
+            ? 'bg-linear-to-b from-blue-50/30 via-white to-white border-blue-200/90'
+            : p1Details.gender === 'female'
+            ? 'bg-linear-to-b from-pink-50/30 via-white to-white border-pink-200/90'
+            : 'bg-white border-amber-900/15'
+        }`}>
+          <div className="flex items-center justify-between pb-3 border-b border-stone-200/80">
             <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-xl bg-blue-100 text-blue-900 flex items-center justify-center font-bold text-sm">
+              <div className={`w-8 h-8 rounded-xl flex items-center justify-center font-bold text-sm border transition-colors ${
+                p1Details.gender === 'male'
+                  ? 'bg-blue-100 text-blue-900 border-blue-200'
+                  : p1Details.gender === 'female'
+                  ? 'bg-pink-100 text-pink-900 border-pink-200'
+                  : 'bg-amber-100 text-amber-950 border-amber-200'
+              }`}>
                 1
               </div>
               <div>
-                <h3 className="text-base font-bold text-stone-900 font-vedic">Partner 1 (Groom / Boy)</h3>
+                <h3 className={`text-base font-bold font-vedic transition-colors ${
+                  p1Details.gender === 'male' ? 'text-blue-950' : p1Details.gender === 'female' ? 'text-pink-950' : 'text-stone-900'
+                }`}>
+                  Partner 1
+                </h3>
                 <p className="text-[11px] text-stone-500">First individual's birth details</p>
               </div>
             </div>
-            <span className="text-[10px] font-semibold uppercase px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-800 border border-blue-200">
-              Var (वर)
+            <span className={`text-[10px] font-semibold capitalize px-2.5 py-0.5 rounded-full border transition-colors ${
+              p1Details.gender === 'male'
+                ? 'bg-blue-50 text-blue-800 border-blue-200'
+                : p1Details.gender === 'female'
+                ? 'bg-pink-50 text-pink-800 border-pink-200'
+                : 'bg-stone-100 text-stone-700 border-stone-200'
+            }`}>
+              {p1Details.gender === 'male' ? '♂ Male' : p1Details.gender === 'female' ? '♀ Female' : p1Details.gender}
             </span>
           </div>
 
           <div className="space-y-4">
-            {/* Name */}
-            <div className="space-y-1">
-              <label className="text-xs font-bold text-stone-700 block">Name:</label>
-              <input
-                type="text"
-                value={p1Details.name}
-                onChange={(e) => setP1Details(prev => ({ ...prev, name: e.target.value }))}
-                placeholder="Enter Groom Name"
-                className="w-full p-2.5 rounded-xl border border-stone-300 bg-stone-50 text-stone-900 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-amber-500 shadow-2xs"
-              />
+            {/* Name & Gender */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {/* Name */}
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-stone-700 block">Name:</label>
+                <input
+                  type="text"
+                  value={p1Details.name}
+                  onChange={(e) => setP1Details(prev => ({ ...prev, name: e.target.value }))}
+                  placeholder="Enter Partner 1 Name"
+                  className={`w-full p-2.5 rounded-xl border bg-stone-50 text-stone-900 text-sm font-medium focus:outline-none shadow-2xs transition-colors ${
+                    p1Details.gender === 'male'
+                      ? 'border-blue-200/80 focus:ring-2 focus:ring-blue-400 focus:bg-white'
+                      : p1Details.gender === 'female'
+                      ? 'border-pink-200/80 focus:ring-2 focus:ring-pink-400 focus:bg-white'
+                      : 'border-stone-300 focus:ring-2 focus:ring-amber-500'
+                  }`}
+                />
+              </div>
+
+              {/* Gender Selection */}
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-stone-700 block">Gender:</label>
+                <div className="grid grid-cols-3 gap-1 p-1 bg-stone-100 rounded-xl border border-stone-200 h-[42px] items-center">
+                  {(['male', 'female', 'other'] as const).map((g) => {
+                    const isSelected = p1Details.gender === g;
+                    const activeColor = g === 'male'
+                      ? 'bg-blue-600 text-white shadow-xs'
+                      : g === 'female'
+                      ? 'bg-pink-600 text-white shadow-xs'
+                      : 'bg-stone-800 text-white shadow-xs';
+
+                    return (
+                      <button
+                        key={g}
+                        type="button"
+                        onClick={() => setP1Details(prev => ({ ...prev, gender: g }))}
+                        className={`h-8 px-2 rounded-lg text-xs font-bold capitalize transition-all cursor-pointer ${
+                          isSelected
+                            ? activeColor
+                            : 'text-stone-600 hover:text-stone-900 hover:bg-stone-200/60'
+                        }`}
+                      >
+                        {g}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
             </div>
 
             {/* Birth Date */}
@@ -427,34 +488,95 @@ Calculated via GoodAstrology Match Finder`;
           </div>
         </div>
 
-        {/* PARTNER 2 (Bride / Girl) */}
-        <div className="bg-white rounded-3xl p-5 sm:p-6 border border-amber-900/15 shadow-xs space-y-5">
-          <div className="flex items-center justify-between pb-3 border-b border-stone-200">
+        {/* PARTNER 2 */}
+        <div className={`rounded-3xl p-5 sm:p-6 border shadow-xs space-y-5 transition-all duration-200 ${
+          p2Details.gender === 'female'
+            ? 'bg-linear-to-b from-pink-50/30 via-white to-white border-pink-200/90'
+            : p2Details.gender === 'male'
+            ? 'bg-linear-to-b from-blue-50/30 via-white to-white border-blue-200/90'
+            : 'bg-white border-amber-900/15'
+        }`}>
+          <div className="flex items-center justify-between pb-3 border-b border-stone-200/80">
             <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-xl bg-pink-100 text-pink-900 flex items-center justify-center font-bold text-sm">
+              <div className={`w-8 h-8 rounded-xl flex items-center justify-center font-bold text-sm border transition-colors ${
+                p2Details.gender === 'female'
+                  ? 'bg-pink-100 text-pink-900 border-pink-200'
+                  : p2Details.gender === 'male'
+                  ? 'bg-blue-100 text-blue-900 border-blue-200'
+                  : 'bg-amber-100 text-amber-950 border-amber-200'
+              }`}>
                 2
               </div>
               <div>
-                <h3 className="text-base font-bold text-stone-900 font-vedic">Partner 2 (Bride / Girl)</h3>
+                <h3 className={`text-base font-bold font-vedic transition-colors ${
+                  p2Details.gender === 'female' ? 'text-pink-950' : p2Details.gender === 'male' ? 'text-blue-950' : 'text-stone-900'
+                }`}>
+                  Partner 2
+                </h3>
                 <p className="text-[11px] text-stone-500">Second individual's birth details</p>
               </div>
             </div>
-            <span className="text-[10px] font-semibold uppercase px-2.5 py-0.5 rounded-full bg-pink-50 text-pink-800 border border-pink-200">
-              Kanya (कन्या)
+            <span className={`text-[10px] font-semibold capitalize px-2.5 py-0.5 rounded-full border transition-colors ${
+              p2Details.gender === 'female'
+                ? 'bg-pink-50 text-pink-800 border-pink-200'
+                : p2Details.gender === 'male'
+                ? 'bg-blue-50 text-blue-800 border-blue-200'
+                : 'bg-stone-100 text-stone-700 border-stone-200'
+            }`}>
+              {p2Details.gender === 'female' ? '♀ Female' : p2Details.gender === 'male' ? '♂ Male' : p2Details.gender}
             </span>
           </div>
 
           <div className="space-y-4">
-            {/* Name */}
-            <div className="space-y-1">
-              <label className="text-xs font-bold text-stone-700 block">Name:</label>
-              <input
-                type="text"
-                value={p2Details.name}
-                onChange={(e) => setP2Details(prev => ({ ...prev, name: e.target.value }))}
-                placeholder="Enter Bride Name"
-                className="w-full p-2.5 rounded-xl border border-stone-300 bg-stone-50 text-stone-900 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-amber-500 shadow-2xs"
-              />
+            {/* Name & Gender */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {/* Name */}
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-stone-700 block">Name:</label>
+                <input
+                  type="text"
+                  value={p2Details.name}
+                  onChange={(e) => setP2Details(prev => ({ ...prev, name: e.target.value }))}
+                  placeholder="Enter Partner 2 Name"
+                  className={`w-full p-2.5 rounded-xl border bg-stone-50 text-stone-900 text-sm font-medium focus:outline-none shadow-2xs transition-colors ${
+                    p2Details.gender === 'female'
+                      ? 'border-pink-200/80 focus:ring-2 focus:ring-pink-400 focus:bg-white'
+                      : p2Details.gender === 'male'
+                      ? 'border-blue-200/80 focus:ring-2 focus:ring-blue-400 focus:bg-white'
+                      : 'border-stone-300 focus:ring-2 focus:ring-amber-500'
+                  }`}
+                />
+              </div>
+
+              {/* Gender Selection */}
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-stone-700 block">Gender:</label>
+                <div className="grid grid-cols-3 gap-1 p-1 bg-stone-100 rounded-xl border border-stone-200 h-[42px] items-center">
+                  {(['male', 'female', 'other'] as const).map((g) => {
+                    const isSelected = p2Details.gender === g;
+                    const activeColor = g === 'female'
+                      ? 'bg-pink-600 text-white shadow-xs'
+                      : g === 'male'
+                      ? 'bg-blue-600 text-white shadow-xs'
+                      : 'bg-stone-800 text-white shadow-xs';
+
+                    return (
+                      <button
+                        key={g}
+                        type="button"
+                        onClick={() => setP2Details(prev => ({ ...prev, gender: g }))}
+                        className={`h-8 px-2 rounded-lg text-xs font-bold capitalize transition-all cursor-pointer ${
+                          isSelected
+                            ? activeColor
+                            : 'text-stone-600 hover:text-stone-900 hover:bg-stone-200/60'
+                        }`}
+                      >
+                        {g}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
             </div>
 
             {/* Birth Date */}
@@ -790,10 +912,34 @@ Calculated via GoodAstrology Match Finder`;
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Partner 1 Card */}
-            <div className="p-4 rounded-2xl bg-blue-50/50 border border-blue-200 space-y-3">
-              <div className="flex items-center justify-between pb-2 border-b border-blue-200/60">
-                <span className="font-bold text-blue-950 text-sm">{matchReport.partner1.name}</span>
-                <span className="text-[10px] font-semibold bg-blue-100 text-blue-900 px-2 py-0.5 rounded">Groom</span>
+            <div className={`p-4 rounded-2xl border space-y-3 transition-colors ${
+              p1Details.gender === 'male'
+                ? 'bg-blue-50/40 border-blue-200'
+                : p1Details.gender === 'female'
+                ? 'bg-pink-50/40 border-pink-200'
+                : 'bg-amber-50/50 border-amber-200'
+            }`}>
+              <div className={`flex items-center justify-between pb-2 border-b ${
+                p1Details.gender === 'male'
+                  ? 'border-blue-200/60'
+                  : p1Details.gender === 'female'
+                  ? 'border-pink-200/60'
+                  : 'border-amber-200/60'
+              }`}>
+                <span className={`font-bold text-sm ${
+                  p1Details.gender === 'male' ? 'text-blue-950' : p1Details.gender === 'female' ? 'text-pink-950' : 'text-amber-950'
+                }`}>
+                  {matchReport.partner1.name}
+                </span>
+                <span className={`text-[10px] font-semibold px-2 py-0.5 rounded capitalize ${
+                  p1Details.gender === 'male'
+                    ? 'bg-blue-100 text-blue-900'
+                    : p1Details.gender === 'female'
+                    ? 'bg-pink-100 text-pink-900'
+                    : 'bg-amber-100 text-amber-900'
+                }`}>
+                  Partner 1 ({p1Details.gender === 'male' ? '♂ Male' : p1Details.gender === 'female' ? '♀ Female' : p1Details.gender})
+                </span>
               </div>
               <div className="grid grid-cols-2 gap-2 text-xs">
                 <div>
@@ -818,10 +964,34 @@ Calculated via GoodAstrology Match Finder`;
             </div>
 
             {/* Partner 2 Card */}
-            <div className="p-4 rounded-2xl bg-pink-50/50 border border-pink-200 space-y-3">
-              <div className="flex items-center justify-between pb-2 border-b border-pink-200/60">
-                <span className="font-bold text-pink-950 text-sm">{matchReport.partner2.name}</span>
-                <span className="text-[10px] font-semibold bg-pink-100 text-pink-900 px-2 py-0.5 rounded">Bride</span>
+            <div className={`p-4 rounded-2xl border space-y-3 transition-colors ${
+              p2Details.gender === 'female'
+                ? 'bg-pink-50/40 border-pink-200'
+                : p2Details.gender === 'male'
+                ? 'bg-blue-50/40 border-blue-200'
+                : 'bg-amber-50/50 border-amber-200'
+            }`}>
+              <div className={`flex items-center justify-between pb-2 border-b ${
+                p2Details.gender === 'female'
+                  ? 'border-pink-200/60'
+                  : p2Details.gender === 'male'
+                  ? 'border-blue-200/60'
+                  : 'border-amber-200/60'
+              }`}>
+                <span className={`font-bold text-sm ${
+                  p2Details.gender === 'female' ? 'text-pink-950' : p2Details.gender === 'male' ? 'text-blue-950' : 'text-amber-950'
+                }`}>
+                  {matchReport.partner2.name}
+                </span>
+                <span className={`text-[10px] font-semibold px-2 py-0.5 rounded capitalize ${
+                  p2Details.gender === 'female'
+                    ? 'bg-pink-100 text-pink-900'
+                    : p2Details.gender === 'male'
+                    ? 'bg-blue-100 text-blue-900'
+                    : 'bg-amber-100 text-amber-900'
+                }`}>
+                  Partner 2 ({p2Details.gender === 'female' ? '♀ Female' : p2Details.gender === 'male' ? '♂ Male' : p2Details.gender})
+                </span>
               </div>
               <div className="grid grid-cols-2 gap-2 text-xs">
                 <div>
@@ -866,7 +1036,7 @@ Calculated via GoodAstrology Match Finder`;
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Boy Manglik */}
+            {/* Partner 1 Manglik */}
             <div className="p-3.5 rounded-2xl bg-[#FAF8F5] border border-stone-200 flex items-center justify-between">
               <div>
                 <span className="text-xs font-bold text-stone-900 block">{matchReport.partner1.name}</span>
@@ -881,7 +1051,7 @@ Calculated via GoodAstrology Match Finder`;
               </span>
             </div>
 
-            {/* Girl Manglik */}
+            {/* Partner 2 Manglik */}
             <div className="p-3.5 rounded-2xl bg-[#FAF8F5] border border-stone-200 flex items-center justify-between">
               <div>
                 <span className="text-xs font-bold text-stone-900 block">{matchReport.partner2.name}</span>
@@ -1015,8 +1185,8 @@ Calculated via GoodAstrology Match Finder`;
                   <thead>
                     <tr className="bg-stone-100 text-stone-700 font-bold border-b border-stone-200">
                       <th className="p-3 rounded-l-xl">Koota Factor</th>
-                      <th className="p-3">Boy Attribute</th>
-                      <th className="p-3">Girl Attribute</th>
+                      <th className="p-3">Partner 1 Attribute</th>
+                      <th className="p-3">Partner 2 Attribute</th>
                       <th className="p-3 text-center">Score / Max</th>
                       <th className="p-3 text-center">Status</th>
                       <th className="p-3 text-right rounded-r-xl">Details</th>

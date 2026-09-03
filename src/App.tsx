@@ -202,7 +202,7 @@ export default function App() {
                 <span className="text-xl font-bold font-vedic text-white">GoodAstrology</span>
               </div>
               <p className="text-xs text-stone-400 leading-relaxed">
-                Authentic, accessible Vedic astrology knowledge base. Interactive Kundli house chart reader, 9 Navagrahas in 12 houses reference posters, astrological gemstone remedies, and Kundali Milan match finder.
+                A modern Vedic astrology platform built on open-source technologies, using classical Vedic astrology principles and structured calculations to generate Kundli analysis, gemstone recommendations, and compatibility reports.
               </p>
             </div>
 

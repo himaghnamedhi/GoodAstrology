@@ -109,7 +109,7 @@ export const CustomReportModal: React.FC<CustomReportModalProps> = ({
 
   // 2. Match Finder State
   const [p1Details, setP1Details] = useState<BirthDetails>(() => initialP1Details || {
-    name: 'Groom (Var)',
+    name: 'Partner 1',
     gender: 'male',
     dob: '1996-05-15',
     tob: '08:30',
@@ -122,7 +122,7 @@ export const CustomReportModal: React.FC<CustomReportModalProps> = ({
   });
 
   const [p2Details, setP2Details] = useState<BirthDetails>(() => initialP2Details || {
-    name: 'Bride (Kanya)',
+    name: 'Partner 2',
     gender: 'female',
     dob: '1998-08-20',
     tob: '14:15',
@@ -329,8 +329,8 @@ export const CustomReportModal: React.FC<CustomReportModalProps> = ({
         const nameClean = (nativeName || 'Native').trim().replace(/[^a-zA-Z0-9_-]/g, '_');
         fileName = `Vedic_Kundli_Janam_Patrika_${nameClean}.pdf`;
       } else if (activeReportType === 'match') {
-        const p1 = (p1Details.name || 'Groom').trim().replace(/[^a-zA-Z0-9_-]/g, '_');
-        const p2 = (p2Details.name || 'Bride').trim().replace(/[^a-zA-Z0-9_-]/g, '_');
+        const p1 = (p1Details.name || 'Partner_1').trim().replace(/[^a-zA-Z0-9_-]/g, '_');
+        const p2 = (p2Details.name || 'Partner_2').trim().replace(/[^a-zA-Z0-9_-]/g, '_');
         fileName = `Kundali_Milan_Match_Report_${p1}_and_${p2}.pdf`;
       } else {
         const nameClean = (gemNativeName || 'Native').trim().replace(/[^a-zA-Z0-9_-]/g, '_');
@@ -587,28 +587,28 @@ export const CustomReportModal: React.FC<CustomReportModalProps> = ({
           {activeReportType === 'match' && (
             <div className="grid grid-cols-1 sm:grid-cols-4 gap-2.5">
               <div>
-                <label className="block text-[10.5px] font-bold text-blue-950 mb-0.5">
-                  Groom (Var) Name:
+                <label className="block text-[10.5px] font-bold text-amber-950 mb-0.5">
+                  Partner 1 Name:
                 </label>
                 <input
                   type="text"
                   value={p1Details.name}
                   onChange={(e) => setP1Details({ ...p1Details, name: e.target.value })}
-                  placeholder="Groom Name"
-                  className="w-full bg-white border border-stone-300 rounded-lg px-2 py-1 text-xs text-stone-800 focus:ring-1 focus:ring-blue-800 focus:outline-none"
+                  placeholder="Partner 1 Name"
+                  className="w-full bg-white border border-stone-300 rounded-lg px-2 py-1 text-xs text-stone-800 focus:ring-1 focus:ring-amber-800 focus:outline-none"
                 />
               </div>
 
               <div>
-                <label className="block text-[10.5px] font-bold text-pink-950 mb-0.5">
-                  Bride (Kanya) Name:
+                <label className="block text-[10.5px] font-bold text-amber-950 mb-0.5">
+                  Partner 2 Name:
                 </label>
                 <input
                   type="text"
                   value={p2Details.name}
                   onChange={(e) => setP2Details({ ...p2Details, name: e.target.value })}
-                  placeholder="Bride Name"
-                  className="w-full bg-white border border-stone-300 rounded-lg px-2 py-1 text-xs text-stone-800 focus:ring-1 focus:ring-pink-800 focus:outline-none"
+                  placeholder="Partner 2 Name"
+                  className="w-full bg-white border border-stone-300 rounded-lg px-2 py-1 text-xs text-stone-800 focus:ring-1 focus:ring-amber-800 focus:outline-none"
                 />
               </div>
 

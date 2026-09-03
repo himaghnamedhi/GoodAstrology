@@ -49,16 +49,38 @@ export const MatchReportPages: React.FC<MatchReportPagesProps> = ({
               Comprehensive 36 Gunas Ashtakoota Analysis, Manglik Compatibility &amp; Marital Destiny Evaluation
             </p>
 
-            {/* Groom & Bride Comparative Cards */}
+            {/* Partner 1 & Partner 2 Comparative Cards */}
             <div className="mt-2.5 pt-2 border-t border-amber-900/20 grid grid-cols-2 gap-3 text-[11px]">
-              {/* Groom Card */}
-              <div className="p-2.5 rounded-lg bg-blue-50/70 border border-blue-200/80 text-left">
-                <div className="flex items-center justify-between mb-1 pb-1 border-b border-blue-200/60">
-                  <span className="text-[9.5px] uppercase font-bold text-blue-900 tracking-wider">Var (Groom Profile)</span>
-                  <span className="text-[10px] px-1.5 py-0.2 rounded bg-blue-200/70 text-blue-950 font-bold">♂ Groom</span>
+              {/* Partner 1 Card */}
+              <div className={`p-2.5 rounded-lg border text-left ${
+                p1Details.gender === 'male'
+                  ? 'bg-blue-50/60 border-blue-200/90'
+                  : p1Details.gender === 'female'
+                  ? 'bg-pink-50/60 border-pink-200/90'
+                  : 'bg-stone-50 border-stone-200'
+              }`}>
+                <div className={`flex items-center justify-between mb-1 pb-1 border-b ${
+                  p1Details.gender === 'male' ? 'border-blue-200/60' : p1Details.gender === 'female' ? 'border-pink-200/60' : 'border-stone-200'
+                }`}>
+                  <span className={`text-[9.5px] uppercase font-bold tracking-wider ${
+                    p1Details.gender === 'male' ? 'text-blue-900' : p1Details.gender === 'female' ? 'text-pink-900' : 'text-stone-800'
+                  }`}>
+                    Partner 1 Profile
+                  </span>
+                  <span className={`text-[10px] px-1.5 py-0.2 rounded font-bold capitalize ${
+                    p1Details.gender === 'male'
+                      ? 'bg-blue-200/70 text-blue-950'
+                      : p1Details.gender === 'female'
+                      ? 'bg-pink-200/70 text-pink-950'
+                      : 'bg-amber-100 text-amber-950'
+                  }`}>
+                    {p1Details.gender === 'male' ? '♂ Male' : p1Details.gender === 'female' ? '♀ Female' : 'Partner 1'}
+                  </span>
                 </div>
-                <strong className="text-blue-950 font-bold text-xs block truncate mb-1">
-                  {matchReport.partner1.name || 'Groom'}
+                <strong className={`font-bold text-xs block truncate mb-1 ${
+                  p1Details.gender === 'male' ? 'text-blue-950' : p1Details.gender === 'female' ? 'text-pink-950' : 'text-amber-950'
+                }`}>
+                  {matchReport.partner1.name || 'Partner 1'}
                 </strong>
                 <div className="grid grid-cols-2 gap-x-2 gap-y-0.5 text-[10px] text-stone-700">
                   <div>Birth: <strong className="text-stone-900">{p1Details.dob || 'Recorded'}</strong></div>
@@ -70,14 +92,36 @@ export const MatchReportPages: React.FC<MatchReportPagesProps> = ({
                 </div>
               </div>
 
-              {/* Bride Card */}
-              <div className="p-2.5 rounded-lg bg-pink-50/70 border border-pink-200/80 text-left">
-                <div className="flex items-center justify-between mb-1 pb-1 border-b border-pink-200/60">
-                  <span className="text-[9.5px] uppercase font-bold text-pink-900 tracking-wider">Kanya (Bride Profile)</span>
-                  <span className="text-[10px] px-1.5 py-0.2 rounded bg-pink-200/70 text-pink-950 font-bold">♀ Bride</span>
+              {/* Partner 2 Card */}
+              <div className={`p-2.5 rounded-lg border text-left ${
+                p2Details.gender === 'female'
+                  ? 'bg-pink-50/60 border-pink-200/90'
+                  : p2Details.gender === 'male'
+                  ? 'bg-blue-50/60 border-blue-200/90'
+                  : 'bg-stone-50 border-stone-200'
+              }`}>
+                <div className={`flex items-center justify-between mb-1 pb-1 border-b ${
+                  p2Details.gender === 'female' ? 'border-pink-200/60' : p2Details.gender === 'male' ? 'border-blue-200/60' : 'border-stone-200'
+                }`}>
+                  <span className={`text-[9.5px] uppercase font-bold tracking-wider ${
+                    p2Details.gender === 'female' ? 'text-pink-900' : p2Details.gender === 'male' ? 'text-blue-900' : 'text-stone-800'
+                  }`}>
+                    Partner 2 Profile
+                  </span>
+                  <span className={`text-[10px] px-1.5 py-0.2 rounded font-bold capitalize ${
+                    p2Details.gender === 'female'
+                      ? 'bg-pink-200/70 text-pink-950'
+                      : p2Details.gender === 'male'
+                      ? 'bg-blue-200/70 text-blue-950'
+                      : 'bg-amber-100 text-amber-950'
+                  }`}>
+                    {p2Details.gender === 'female' ? '♀ Female' : p2Details.gender === 'male' ? '♂ Male' : 'Partner 2'}
+                  </span>
                 </div>
-                <strong className="text-pink-950 font-bold text-xs block truncate mb-1">
-                  {matchReport.partner2.name || 'Bride'}
+                <strong className={`font-bold text-xs block truncate mb-1 ${
+                  p2Details.gender === 'female' ? 'text-pink-950' : p2Details.gender === 'male' ? 'text-blue-950' : 'text-amber-950'
+                }`}>
+                  {matchReport.partner2.name || 'Partner 2'}
                 </strong>
                 <div className="grid grid-cols-2 gap-x-2 gap-y-0.5 text-[10px] text-stone-700">
                   <div>Birth: <strong className="text-stone-900">{p2Details.dob || 'Recorded'}</strong></div>
@@ -138,8 +182,8 @@ export const MatchReportPages: React.FC<MatchReportPagesProps> = ({
                   <tr>
                     <th className="p-1.5 border-r border-stone-200">Kuta (कूट)</th>
                     <th className="p-1.5 border-r border-stone-200">Signification</th>
-                    <th className="p-1.5 border-r border-stone-200">Groom</th>
-                    <th className="p-1.5 border-r border-stone-200">Bride</th>
+                    <th className="p-1.5 border-r border-stone-200">Partner 1</th>
+                    <th className="p-1.5 border-r border-stone-200">Partner 2</th>
                     <th className="p-1.5 border-r border-stone-200 text-center">Score</th>
                     <th className="p-1.5 text-center">Verdict</th>
                   </tr>
@@ -235,7 +279,7 @@ export const MatchReportPages: React.FC<MatchReportPagesProps> = ({
             <div className="grid grid-cols-2 gap-2 text-[10px]">
               <div className="p-2 rounded bg-stone-50 border border-stone-200">
                 <div className="flex justify-between items-center mb-1">
-                  <strong className="text-blue-950">{matchReport.partner1.name} (Groom)</strong>
+                  <strong className="text-amber-950">{matchReport.partner1.name} (Partner 1)</strong>
                   <span className={`text-[8.5px] px-1.5 py-0.2 rounded font-bold ${
                     matchReport.manglik.isBoyManglik ? 'bg-orange-100 text-orange-950' : 'bg-emerald-100 text-emerald-950'
                   }`}>
@@ -249,7 +293,7 @@ export const MatchReportPages: React.FC<MatchReportPagesProps> = ({
 
               <div className="p-2 rounded bg-stone-50 border border-stone-200">
                 <div className="flex justify-between items-center mb-1">
-                  <strong className="text-pink-950">{matchReport.partner2.name} (Bride)</strong>
+                  <strong className="text-amber-950">{matchReport.partner2.name} (Partner 2)</strong>
                   <span className={`text-[8.5px] px-1.5 py-0.2 rounded font-bold ${
                     matchReport.manglik.isGirlManglik ? 'bg-orange-100 text-orange-950' : 'bg-emerald-100 text-emerald-950'
                   }`}>
