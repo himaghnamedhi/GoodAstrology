@@ -1,10 +1,10 @@
 import React from 'react';
-import { Sparkles, Compass, Search, Share2, Gem } from 'lucide-react';
+import { Sparkles, Compass, Search, Share2, Gem, Heart } from 'lucide-react';
 import { ChartStyle } from '../types/astrology';
 
 interface HeaderProps {
-  activeTab: 'chart' | 'builder' | 'gemstones';
-  setActiveTab: (tab: 'chart' | 'builder' | 'gemstones') => void;
+  activeTab: 'chart' | 'builder' | 'gemstones' | 'match';
+  setActiveTab: (tab: 'chart' | 'builder' | 'gemstones' | 'match') => void;
   chartStyle: ChartStyle;
   setChartStyle: (style: ChartStyle) => void;
   onOpenSearch: () => void;
@@ -84,6 +84,19 @@ export const Header: React.FC<HeaderProps> = ({
               <Gem className="w-4 h-4" />
               <span>Gemstones</span>
             </button>
+
+            <button
+              id="nav-tab-match"
+              onClick={() => setActiveTab('match')}
+              className={`px-3.5 py-2 rounded-lg transition-all flex items-center gap-2 ${
+                activeTab === 'match'
+                  ? 'bg-amber-900 text-amber-50 shadow-xs font-semibold'
+                  : 'text-stone-700 hover:text-stone-900 hover:bg-stone-100'
+              }`}
+            >
+              <Heart className="w-4 h-4 text-rose-500 fill-rose-500/30" />
+              <span>Match Finder</span>
+            </button>
           </nav>
 
           {/* Quick Actions */}
@@ -116,6 +129,7 @@ export const Header: React.FC<HeaderProps> = ({
             { id: 'chart', label: 'House Chart', icon: Compass },
             { id: 'builder', label: 'Kundli Reader', icon: Sparkles },
             { id: 'gemstones', label: 'Gemstones', icon: Gem },
+            { id: 'match', label: 'Match Finder', icon: Heart },
           ].map((item) => {
             const Icon = item.icon;
             const isActive = activeTab === item.id;

@@ -26,7 +26,8 @@ import {
   ArrowRight,
   RotateCcw,
   Search,
-  Globe
+  Globe,
+  FileText
 } from 'lucide-react';
 import { 
   NAVARATNA_DATA, 
@@ -48,12 +49,14 @@ interface GemstoneRecommenderProps {
   initialLagna?: number;
   customPlacements?: ChartPlacement[];
   onNavigateToTab?: (tab: 'chart' | 'builder' | 'gemstones') => void;
+  onOpenCustomReport?: (data: { lagna: number; profile: CalculatedBirthProfile; name: string }) => void;
 }
 
 export const GemstoneRecommender: React.FC<GemstoneRecommenderProps> = ({
   initialLagna = 1,
   customPlacements = [],
-  onNavigateToTab
+  onNavigateToTab,
+  onOpenCustomReport,
 }) => {
   const [activeSubTab, setActiveSubTab] = useState<'birth_calc' | 'lagna' | 'goals' | 'synergy' | 'directory' | 'calculator'>('birth_calc');
   const [selectedLagna, setSelectedLagna] = useState<number>(initialLagna);
@@ -61,20 +64,29 @@ export const GemstoneRecommender: React.FC<GemstoneRecommenderProps> = ({
   
   // Birth Details State
   const [birthDetails, setBirthDetails] = useState<BirthDetails>({
-    name: 'Himaghna Medhi',
+    name: '',
+    gender: 'male',
+    weightKg: 65,
+    weightUnit: 'kg',
     dob: '1998-05-15',
-    tob: '09:30',
+    tob: '',
     city: 'New Delhi',
     latitude: 28.6139,
     longitude: 77.2090,
     timezoneOffset: 5.5
   });
+  const [birthHour, setBirthHour] = useState<string>('');
+  const [birthMinute, setBirthMinute] = useState<string>('');
+  const [birthPeriod, setBirthPeriod] = useState<'AM' | 'PM' | ''>('');
   const [isTimeUnknown, setIsTimeUnknown] = useState<boolean>(false);
   const [calculatedProfile, setCalculatedProfile] = useState<CalculatedBirthProfile>(() => 
     calculateVedicBirthProfile({
-      name: 'Himaghna Medhi',
+      name: '',
+      gender: 'male',
+      weightKg: 65,
+      weightUnit: 'kg',
       dob: '1998-05-15',
-      tob: '09:30',
+      tob: '12:00',
       city: 'New Delhi',
       latitude: 28.6139,
       longitude: 77.2090,
@@ -146,8 +158,31 @@ export const GemstoneRecommender: React.FC<GemstoneRecommenderProps> = ({
     }
   };
 
+  const handleTimePartChange = (newHour: string, newMinute: string, newPeriod: 'AM' | 'PM' | '') => {
+    setBirthHour(newHour);
+    setBirthMinute(newMinute);
+    setBirthPeriod(newPeriod);
+    if (!newHour || !newMinute || !newPeriod) {
+      setBirthDetails(prev => ({ ...prev, tob: '' }));
+      return;
+    }
+    let hourNum = parseInt(newHour, 10) || 12;
+    if (newPeriod === 'PM' && hourNum < 12) hourNum += 12;
+    if (newPeriod === 'AM' && hourNum === 12) hourNum = 0;
+    const formatted = `${String(hourNum).padStart(2, '0')}:${String(newMinute).padStart(2, '0')}`;
+    setBirthDetails(prev => ({ ...prev, tob: formatted }));
+  };
+
   const handleCalculateBirthChart = () => {
-    const timeToUse = isTimeUnknown ? '12:00' : birthDetails.tob;
+    let timeToUse = birthDetails.tob;
+    if (isTimeUnknown || !birthHour || !birthMinute || !birthPeriod) {
+      timeToUse = '12:00';
+    } else {
+      let hourNum = parseInt(birthHour, 10) || 12;
+      if (birthPeriod === 'PM' && hourNum < 12) hourNum += 12;
+      if (birthPeriod === 'AM' && hourNum === 12) hourNum = 0;
+      timeToUse = `${String(hourNum).padStart(2, '0')}:${String(birthMinute).padStart(2, '0')}`;
+    }
     const profile = calculateVedicBirthProfile({
       ...birthDetails,
       tob: timeToUse
@@ -155,6 +190,7 @@ export const GemstoneRecommender: React.FC<GemstoneRecommenderProps> = ({
     setCalculatedProfile(profile);
     setSelectedLagna(profile.lagnaNumber);
     setNativeName(birthDetails.name || 'Native');
+    setBodyWeightKg(profile.bodyWeightKg);
   };
 
   const getElementIcon = (elem: string) => {
@@ -179,10 +215,6 @@ export const GemstoneRecommender: React.FC<GemstoneRecommenderProps> = ({
         <div className="absolute top-0 right-0 w-80 h-80 bg-amber-400/10 rounded-full blur-3xl pointer-events-none" />
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div className="space-y-2 max-w-2xl">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-900/10 text-amber-900 text-xs font-semibold uppercase tracking-wider">
-              <Sparkles className="w-3.5 h-3.5 text-amber-700" />
-              <span>VedAstro Vedic Gemstone Recommender</span>
-            </div>
             <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-amber-950 font-vedic tracking-tight">
               Vedic Gemstone Prescription
             </h1>
@@ -194,14 +226,23 @@ export const GemstoneRecommender: React.FC<GemstoneRecommenderProps> = ({
 
           <div className="flex flex-wrap items-center gap-3">
             <button
+              id="btn-gemstone-generate-report"
               onClick={() => {
-                setNativeName(birthDetails.name || 'Native');
-                setIsPrintModalOpen(true);
+                if (onOpenCustomReport) {
+                  onOpenCustomReport({
+                    lagna: selectedLagna,
+                    profile: calculatedProfile,
+                    name: birthDetails.name || 'Native',
+                  });
+                } else {
+                  setNativeName(birthDetails.name || 'Native');
+                  setIsPrintModalOpen(true);
+                }
               }}
               className="px-4 py-2.5 rounded-xl bg-amber-900 hover:bg-amber-950 text-amber-50 font-semibold text-xs sm:text-sm flex items-center gap-2 shadow-sm transition-all active:scale-95 cursor-pointer"
             >
-              <Printer className="w-4 h-4" />
-              <span>Print Prescription</span>
+              <FileText className="w-4 h-4 text-amber-200" />
+              <span>Generate Report</span>
             </button>
             {onNavigateToTab && (
               <button
@@ -253,55 +294,145 @@ export const GemstoneRecommender: React.FC<GemstoneRecommenderProps> = ({
           <div className="bg-white rounded-3xl border border-amber-900/15 p-6 sm:p-8 shadow-sm space-y-6">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-4 border-b border-stone-100">
               <div>
-                <h2 className="text-lg font-bold text-amber-950 font-vedic">
-                  Enter Birth Details & Name for Vedic Astro-Prescription
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-100/70 text-amber-900 text-xs font-semibold uppercase tracking-wider mb-2">
+                  <Sparkles className="w-3.5 h-3.5 text-amber-700" />
+                  <span>Vedic Kundali &amp; Ratna Shastra Engine</span>
+                </div>
+                <h2 className="text-xl sm:text-2xl font-bold text-amber-950 font-vedic">
+                  Free Gemstone Calculator by Date of Birth &amp; Kundali
                 </h2>
-                <p className="text-xs sm:text-sm text-stone-600">
-                  Computes your Sidereal Ascendant (Lagna), Chandra Rashi, Nakshatra, and Name Vibration to prescribe customized gemstones.
+                <p className="text-xs sm:text-sm text-stone-600 mt-1">
+                  Accurately calculates your Vedic Ascendant (Lagna), Moon Sign, Nakshatra, and exact Gemstone Weight (Ratti/Carats) calibrated to your body weight and constitutional prana threshold.
                 </p>
               </div>
-              <span className="text-[11px] px-3 py-1 rounded-full bg-amber-50 text-amber-900 border border-amber-200 font-semibold self-start sm:self-center">
-                Lahiri Ayanamsha (Chitrapaksha)
-              </span>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
               
-              {/* 1. Name */}
+              {/* 1. Enter your name: */}
               <div className="space-y-1.5">
                 <label className="text-xs font-bold uppercase tracking-wider text-stone-700 flex items-center gap-1.5 font-vedic">
                   <User className="w-3.5 h-3.5 text-amber-800" />
-                  <span>Full Name</span>
+                  <span>Enter your name:</span>
                 </label>
                 <input
                   type="text"
                   value={birthDetails.name}
                   onChange={(e) => setBirthDetails(prev => ({ ...prev, name: e.target.value }))}
-                  placeholder="e.g. Himaghna Medhi"
-                  className="w-full p-3 rounded-xl border border-stone-300 bg-stone-50 font-medium text-sm text-stone-900 focus:outline-none focus:ring-2 focus:ring-amber-500"
+                  placeholder="Enter Your Name"
+                  className="w-full p-3 rounded-xl border border-stone-300 bg-stone-50 font-medium text-sm text-stone-900 placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-amber-500 shadow-2xs"
                 />
               </div>
 
-              {/* 2. Date of Birth */}
+              {/* 2. Enter your gender: */}
               <div className="space-y-1.5">
                 <label className="text-xs font-bold uppercase tracking-wider text-stone-700 flex items-center gap-1.5 font-vedic">
-                  <Calendar className="w-3.5 h-3.5 text-amber-800" />
-                  <span>Date of Birth (DOB)</span>
+                  <Sparkles className="w-3.5 h-3.5 text-amber-800" />
+                  <span>Enter your gender:</span>
                 </label>
+                <div className="grid grid-cols-3 gap-2">
+                  {(['male', 'female', 'other'] as const).map((g) => {
+                    const isSelected = (birthDetails.gender || 'male') === g;
+                    return (
+                      <button
+                        key={g}
+                        type="button"
+                        onClick={() => setBirthDetails(prev => ({ ...prev, gender: g }))}
+                        className={`py-2.5 px-3 rounded-xl text-xs font-bold capitalize transition-all cursor-pointer border ${
+                          isSelected
+                            ? 'bg-amber-900 text-amber-50 border-amber-900 shadow-xs'
+                            : 'bg-stone-50 hover:bg-stone-100 text-stone-700 border-stone-300'
+                        }`}
+                      >
+                        {g === 'other' ? 'Other' : g.charAt(0).toUpperCase() + g.slice(1)}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* 3. Body weight (in kg): */}
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-bold uppercase tracking-wider text-stone-700 flex items-center gap-1.5 font-vedic">
+                    <Scale className="w-3.5 h-3.5 text-amber-800" />
+                    <span>Body weight (in {birthDetails.weightUnit || 'kg'}):</span>
+                  </label>
+                  <div className="flex items-center gap-1 bg-stone-100 p-0.5 rounded-lg border border-stone-200">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (birthDetails.weightUnit === 'lbs') {
+                          const converted = Math.round(birthDetails.weightKg * 0.453592);
+                          setBirthDetails(prev => ({ ...prev, weightKg: converted, weightUnit: 'kg' }));
+                        }
+                      }}
+                      className={`px-2 py-0.5 rounded text-[10px] font-bold transition-colors cursor-pointer ${
+                        (birthDetails.weightUnit || 'kg') === 'kg' ? 'bg-amber-900 text-amber-50' : 'text-stone-600 hover:text-stone-900'
+                      }`}
+                    >
+                      KG
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if ((birthDetails.weightUnit || 'kg') === 'kg') {
+                          const converted = Math.round(birthDetails.weightKg * 2.20462);
+                          setBirthDetails(prev => ({ ...prev, weightKg: converted, weightUnit: 'lbs' }));
+                        }
+                      }}
+                      className={`px-2 py-0.5 rounded text-[10px] font-bold transition-colors cursor-pointer ${
+                        birthDetails.weightUnit === 'lbs' ? 'bg-amber-900 text-amber-50' : 'text-stone-600 hover:text-stone-900'
+                      }`}
+                    >
+                      LBS
+                    </button>
+                  </div>
+                </div>
+                <div className="relative">
+                  <input
+                    type="number"
+                    min="20"
+                    max="300"
+                    value={birthDetails.weightKg || ''}
+                    onChange={(e) => setBirthDetails(prev => ({ ...prev, weightKg: parseFloat(e.target.value) || 0 }))}
+                    placeholder="Enter Your Weight"
+                    className="w-full p-3 rounded-xl border border-stone-300 bg-stone-50 font-medium text-sm text-stone-900 placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-amber-500 shadow-2xs pr-14"
+                  />
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold text-amber-900 uppercase">
+                    {birthDetails.weightUnit || 'kg'}
+                  </span>
+                </div>
+                <span className="text-[11px] text-stone-500 block leading-tight">
+                  Used directly to prescribe exact Ratti &amp; Carat gemstone size (~1 Ratti per 10–12 kg body weight).
+                </span>
+              </div>
+
+              {/* 4. Enter your birth date: */}
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-bold uppercase tracking-wider text-stone-700 flex items-center gap-1.5 font-vedic">
+                    <Calendar className="w-3.5 h-3.5 text-amber-800" />
+                    <span>Enter your birth date:</span>
+                  </label>
+                  <span className="text-[10px] font-mono text-stone-500 bg-stone-100 px-2 py-0.5 rounded">
+                    DD-MM-YYYY
+                  </span>
+                </div>
                 <input
                   type="date"
                   value={birthDetails.dob}
                   onChange={(e) => setBirthDetails(prev => ({ ...prev, dob: e.target.value }))}
-                  className="w-full p-3 rounded-xl border border-stone-300 bg-stone-50 font-medium text-sm text-stone-900 focus:outline-none focus:ring-2 focus:ring-amber-500"
+                  className="w-full p-3 rounded-xl border border-stone-300 bg-stone-50 font-medium text-sm text-stone-900 focus:outline-none focus:ring-2 focus:ring-amber-500 shadow-2xs cursor-pointer"
                 />
               </div>
 
-              {/* 3. Time of Birth */}
+              {/* 5. Enter your birth time: (01, 00, AM) */}
               <div className="space-y-1.5">
                 <div className="flex items-center justify-between">
                   <label className="text-xs font-bold uppercase tracking-wider text-stone-700 flex items-center gap-1.5 font-vedic">
                     <Clock className="w-3.5 h-3.5 text-amber-800" />
-                    <span>Time of Birth</span>
+                    <span>Enter your birth time:</span>
                   </label>
                   <label className="text-[10px] text-stone-500 flex items-center gap-1 cursor-pointer">
                     <input
@@ -313,23 +444,79 @@ export const GemstoneRecommender: React.FC<GemstoneRecommenderProps> = ({
                     <span>Unknown (12 PM)</span>
                   </label>
                 </div>
-                <input
-                  type="time"
-                  disabled={isTimeUnknown}
-                  value={birthDetails.tob}
-                  onChange={(e) => setBirthDetails(prev => ({ ...prev, tob: e.target.value }))}
-                  className={`w-full p-3 rounded-xl border font-medium text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 ${
-                    isTimeUnknown ? 'bg-stone-200/60 text-stone-400 border-stone-300' : 'bg-stone-50 text-stone-900 border-stone-300'
-                  }`}
-                />
+
+                <div className="grid grid-cols-3 gap-2">
+                  {/* Hour */}
+                  <div>
+                    <select
+                      disabled={isTimeUnknown}
+                      value={birthHour}
+                      onChange={(e) => handleTimePartChange(e.target.value, birthMinute, birthPeriod)}
+                      className={`w-full h-[46px] px-3 rounded-xl border font-bold text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 shadow-2xs ${
+                        isTimeUnknown ? 'bg-stone-200/60 text-stone-400 border-stone-300' : 'bg-stone-50 text-stone-900 border-stone-300'
+                      }`}
+                    >
+                      <option value="">--</option>
+                      {['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12'].map((h) => (
+                        <option key={h} value={h}>{h}</option>
+                      ))}
+                    </select>
+                    <span className="text-[10px] font-medium text-stone-500 block mt-1.5 text-center">Hour (01-12)</span>
+                  </div>
+
+                  {/* Minute */}
+                  <div>
+                    <select
+                      disabled={isTimeUnknown}
+                      value={birthMinute}
+                      onChange={(e) => handleTimePartChange(birthHour, e.target.value, birthPeriod)}
+                      className={`w-full h-[46px] px-3 rounded-xl border font-bold text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 shadow-2xs ${
+                        isTimeUnknown ? 'bg-stone-200/60 text-stone-400 border-stone-300' : 'bg-stone-50 text-stone-900 border-stone-300'
+                      }`}
+                    >
+                      <option value="">--</option>
+                      {Array.from({ length: 60 }, (_, i) => String(i).padStart(2, '0')).map((m) => (
+                        <option key={m} value={m}>{m}</option>
+                      ))}
+                    </select>
+                    <span className="text-[10px] font-medium text-stone-500 block mt-1.5 text-center">Minute (00-59)</span>
+                  </div>
+
+                  {/* Period AM / PM */}
+                  <div>
+                    <div className="grid grid-cols-2 gap-1 h-[46px]">
+                      {(['AM', 'PM'] as const).map((p) => {
+                        const isPeriodActive = birthPeriod === p;
+                        return (
+                          <button
+                            key={p}
+                            type="button"
+                            disabled={isTimeUnknown}
+                            onClick={() => handleTimePartChange(birthHour, birthMinute, p)}
+                            className={`rounded-xl text-xs font-bold transition-all border cursor-pointer flex items-center justify-center ${
+                              isTimeUnknown 
+                                ? 'bg-stone-200/60 text-stone-400 border-stone-300'
+                                : isPeriodActive
+                                  ? 'bg-amber-900 text-amber-50 border-amber-900 shadow-xs'
+                                  : 'bg-stone-50 hover:bg-stone-100 text-stone-700 border-stone-300'
+                            }`}
+                          >
+                            {p}
+                          </button>
+                        );
+                      })}
+                    </div>
+                    <span className="text-[10px] font-medium text-stone-500 block mt-1.5 text-center">Period</span>
+                  </div>
+                </div>
               </div>
 
-              {/* 4. Place of Birth */}
+              {/* 6. Enter your birth place: */}
               <div className="space-y-1.5 relative">
                 <div className="flex items-center justify-between">
                   <label className="text-xs font-bold uppercase tracking-wider text-stone-700 flex items-center gap-1.5 font-vedic">
                     <MapPin className="w-3.5 h-3.5 text-amber-800" />
-                    <span>Place of Birth</span>
+                    <span>Enter your birth place:</span>
                   </label>
                   <button
                     type="button"
@@ -353,7 +540,7 @@ export const GemstoneRecommender: React.FC<GemstoneRecommenderProps> = ({
                       <div className="flex items-center gap-2 truncate pr-2">
                         <MapPin className="w-4 h-4 text-amber-800 shrink-0" />
                         <div className="truncate">
-                          <span className="font-bold text-stone-900">{birthDetails.city}</span>
+                          <span className="font-bold text-stone-900">{birthDetails.city || 'Enter Birth Place Here'}</span>
                           {currentCityObject.stateOrRegion && (
                             <span className="text-stone-500 text-xs ml-1">({currentCityObject.stateOrRegion}, {currentCityObject.country})</span>
                           )}
@@ -507,10 +694,11 @@ export const GemstoneRecommender: React.FC<GemstoneRecommenderProps> = ({
             </div>
 
             {/* Calculate Action */}
-            <div className="flex flex-wrap items-center justify-between gap-4 pt-2">
-              <p className="text-xs text-stone-500">
-                Calculations use high-precision sidereal planetary longitude algorithms aligned with classical Parashara Jyotish rules.
-              </p>
+            <div className="flex flex-wrap items-center justify-between gap-4 pt-2 border-t border-stone-100">
+              <div className="flex items-center gap-2 text-xs text-stone-600">
+                <Scale className="w-4 h-4 text-amber-800 shrink-0" />
+                <span>Includes personalized gemstone dosage calculation by constitutional body weight.</span>
+              </div>
               <button
                 onClick={handleCalculateBirthChart}
                 className="px-6 py-3 rounded-xl bg-amber-900 hover:bg-amber-950 text-amber-50 font-bold text-sm flex items-center gap-2 shadow-md transition-all active:scale-95 cursor-pointer"
@@ -533,7 +721,7 @@ export const GemstoneRecommender: React.FC<GemstoneRecommenderProps> = ({
                     Astrological Kundli Profile: <span className="text-amber-950">{birthDetails.name || 'Native'}</span>
                   </h3>
                   <p className="text-xs text-stone-500">
-                    Born {birthDetails.dob} at {birthDetails.tob} • {birthDetails.city} (UTC {birthDetails.timezoneOffset >= 0 ? `+${birthDetails.timezoneOffset}` : birthDetails.timezoneOffset})
+                    Born {birthDetails.dob}{birthDetails.tob ? ` at ${birthDetails.tob}` : ''} • {birthDetails.city} (UTC {birthDetails.timezoneOffset >= 0 ? `+${birthDetails.timezoneOffset}` : birthDetails.timezoneOffset})
                   </p>
                 </div>
               </div>
@@ -553,7 +741,7 @@ export const GemstoneRecommender: React.FC<GemstoneRecommenderProps> = ({
             </div>
 
             {/* Profile Metrics Grid */}
-            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-3 text-xs">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 text-xs">
               <div className="p-3.5 rounded-xl bg-white border border-stone-200/80 space-y-1">
                 <span className="text-[10px] uppercase font-bold text-stone-500 block">Ascendant (Lagna)</span>
                 <div className="text-sm font-bold text-amber-950 font-vedic">{calculatedProfile.lagnaName}</div>
@@ -574,7 +762,7 @@ export const GemstoneRecommender: React.FC<GemstoneRecommenderProps> = ({
                 <span className="text-[10px] uppercase font-bold text-stone-500 block">Sun Sign (Surya Rashi)</span>
                 <div className="text-sm font-bold text-amber-950 font-vedic">{calculatedProfile.sunSignName}</div>
                 <div className="text-[11px] text-stone-600">
-                  Vitality & Soul Essence
+                  Vitality &amp; Soul Essence
                 </div>
               </div>
 
@@ -584,6 +772,42 @@ export const GemstoneRecommender: React.FC<GemstoneRecommenderProps> = ({
                 <div className="text-[11px] text-stone-600">
                   Destiny No. <strong>{calculatedProfile.destinyNumber}</strong> (Ruled by <span className="capitalize">{calculatedProfile.destinyPlanet}</span>)
                 </div>
+              </div>
+
+              {/* 5. Prescribed Dosage from Body Weight */}
+              <div className="p-3.5 rounded-xl bg-amber-50/80 border border-amber-300/80 space-y-1 col-span-2 sm:col-span-1">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] uppercase font-bold text-amber-900 flex items-center gap-1">
+                    <Scale className="w-3 h-3 text-amber-800" />
+                    <span>Gemstone Dosage</span>
+                  </span>
+                  <span className="text-[9px] font-bold text-amber-800 bg-white px-1.5 py-0.2 rounded border border-amber-200 uppercase">
+                    {calculatedProfile.gender}
+                  </span>
+                </div>
+                <div className="text-sm font-bold text-amber-950 font-mono">
+                  {calculatedProfile.prescribedIdealRatti} Ratti
+                </div>
+                <div className="text-[11px] text-amber-900/90 font-medium">
+                  {calculatedProfile.prescribedCarat} Carats • {calculatedProfile.bodyWeightKg} kg body mass
+                </div>
+              </div>
+            </div>
+
+            {/* Constitutional Weight Dosage Rationale Banner */}
+            <div className="bg-amber-100/60 border border-amber-300/80 rounded-xl p-3.5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs text-amber-950">
+              <div className="flex items-start sm:items-center gap-2.5">
+                <div className="p-1.5 rounded-lg bg-amber-900 text-amber-50 shrink-0 mt-0.5 sm:mt-0">
+                  <Scale className="w-4 h-4" />
+                </div>
+                <div>
+                  <strong className="text-amber-950 font-vedic block sm:inline mr-2">Constitutional Dosage:</strong>
+                  <span className="text-stone-700">{calculatedProfile.prescribedWeightRationale}</span>
+                </div>
+              </div>
+              <div className="flex items-center gap-1.5 shrink-0 self-end sm:self-center font-mono text-[11px] bg-white px-2.5 py-1 rounded-lg border border-amber-200">
+                <span className="text-stone-500">Min. Baseline:</span>
+                <strong className="text-amber-900">{calculatedProfile.prescribedMinRatti} Ratti</strong>
               </div>
             </div>
           </div>
@@ -629,9 +853,20 @@ export const GemstoneRecommender: React.FC<GemstoneRecommenderProps> = ({
                         </div>
                       </div>
 
-                      <p className="text-xs text-stone-600 leading-relaxed mb-4">
+                      <p className="text-xs text-stone-600 leading-relaxed mb-3">
                         {rec.why}
                       </p>
+
+                      {/* Weight-Calibrated Prescribed Dosage */}
+                      <div className="flex items-center justify-between text-xs bg-amber-50/90 border border-amber-200/80 p-2.5 rounded-xl text-amber-950 font-medium mb-3">
+                        <div className="flex items-center gap-1.5">
+                          <Scale className="w-3.5 h-3.5 text-amber-800 shrink-0" />
+                          <span>Dosage for {calculatedProfile.bodyWeightKg} kg:</span>
+                        </div>
+                        <span className="font-bold text-amber-900 bg-white px-2 py-0.5 rounded-md border border-amber-300/80 shadow-2xs font-mono text-[11px]">
+                          {calculatedProfile.prescribedIdealRatti} Ratti ({calculatedProfile.prescribedCarat} ct)
+                        </span>
+                      </div>
 
                       <div className="space-y-1.5 text-xs text-stone-600 bg-stone-50 p-3 rounded-xl border border-stone-200/60 mb-3">
                         <div className="flex justify-between">
@@ -685,9 +920,20 @@ export const GemstoneRecommender: React.FC<GemstoneRecommenderProps> = ({
                         </div>
                       </div>
 
-                      <p className="text-xs text-stone-600 leading-relaxed mb-4">
+                      <p className="text-xs text-stone-600 leading-relaxed mb-3">
                         {rec.why}
                       </p>
+
+                      {/* Weight-Calibrated Prescribed Dosage */}
+                      <div className="flex items-center justify-between text-xs bg-emerald-50/90 border border-emerald-200/80 p-2.5 rounded-xl text-emerald-950 font-medium mb-3">
+                        <div className="flex items-center gap-1.5">
+                          <Scale className="w-3.5 h-3.5 text-emerald-800 shrink-0" />
+                          <span>Dosage for {calculatedProfile.bodyWeightKg} kg:</span>
+                        </div>
+                        <span className="font-bold text-emerald-900 bg-white px-2 py-0.5 rounded-md border border-emerald-300/80 shadow-2xs font-mono text-[11px]">
+                          {calculatedProfile.prescribedIdealRatti} Ratti ({calculatedProfile.prescribedCarat} ct)
+                        </span>
+                      </div>
 
                       <div className="space-y-1.5 text-xs text-stone-600 bg-stone-50 p-3 rounded-xl border border-stone-200/60 mb-3">
                         <div className="flex justify-between">
@@ -741,9 +987,20 @@ export const GemstoneRecommender: React.FC<GemstoneRecommenderProps> = ({
                         </div>
                       </div>
 
-                      <p className="text-xs text-stone-600 leading-relaxed mb-4">
+                      <p className="text-xs text-stone-600 leading-relaxed mb-3">
                         {rec.why}
                       </p>
+
+                      {/* Weight-Calibrated Prescribed Dosage */}
+                      <div className="flex items-center justify-between text-xs bg-indigo-50/90 border border-indigo-200/80 p-2.5 rounded-xl text-indigo-950 font-medium mb-3">
+                        <div className="flex items-center gap-1.5">
+                          <Scale className="w-3.5 h-3.5 text-indigo-800 shrink-0" />
+                          <span>Dosage for {calculatedProfile.bodyWeightKg} kg:</span>
+                        </div>
+                        <span className="font-bold text-indigo-900 bg-white px-2 py-0.5 rounded-md border border-indigo-300/80 shadow-2xs font-mono text-[11px]">
+                          {calculatedProfile.prescribedIdealRatti} Ratti ({calculatedProfile.prescribedCarat} ct)
+                        </span>
+                      </div>
 
                       <div className="space-y-1.5 text-xs text-stone-600 bg-stone-50 p-3 rounded-xl border border-stone-200/60 mb-3">
                         <div className="flex justify-between">
@@ -797,6 +1054,15 @@ export const GemstoneRecommender: React.FC<GemstoneRecommenderProps> = ({
               <p className="text-xs text-stone-600">
                 Calms emotional volatility, fosters inner peace, and enhances intuition.
               </p>
+              <div className="flex items-center justify-between pt-1 border-t border-stone-100">
+                <span className="text-[11px] text-stone-500 flex items-center gap-1">
+                  <Scale className="w-3 h-3 text-amber-800" />
+                  <span>Dosage:</span>
+                </span>
+                <span className="text-[11px] font-bold text-amber-900 bg-amber-50 px-2 py-0.5 rounded border border-amber-200 font-mono">
+                  {calculatedProfile.prescribedIdealRatti} Ratti ({calculatedProfile.prescribedCarat} ct)
+                </span>
+              </div>
               <button
                 onClick={() => setSelectedGemId(birthMoonGemData.id)}
                 className="text-xs font-semibold text-amber-900 hover:text-amber-950 flex items-center gap-1 cursor-pointer"
@@ -810,7 +1076,7 @@ export const GemstoneRecommender: React.FC<GemstoneRecommenderProps> = ({
             <div className="bg-white rounded-2xl border border-stone-200 p-5 space-y-3">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-bold uppercase tracking-wider text-stone-500 font-vedic">
-                  Name Sound & Destiny Harmony Gem
+                  Name Sound &amp; Destiny Harmony Gem
                 </span>
                 <span className="text-[10px] px-2 py-0.5 rounded bg-amber-100 text-amber-900 font-semibold">
                   Destiny No. {calculatedProfile.destinyNumber}
@@ -828,6 +1094,15 @@ export const GemstoneRecommender: React.FC<GemstoneRecommenderProps> = ({
               <p className="text-xs text-stone-600">
                 Harmonizes phonetic resonance with social identity, career charisma, and public fortune.
               </p>
+              <div className="flex items-center justify-between pt-1 border-t border-stone-100">
+                <span className="text-[11px] text-stone-500 flex items-center gap-1">
+                  <Scale className="w-3 h-3 text-amber-800" />
+                  <span>Dosage:</span>
+                </span>
+                <span className="text-[11px] font-bold text-amber-900 bg-amber-50 px-2 py-0.5 rounded border border-amber-200 font-mono">
+                  {calculatedProfile.prescribedIdealRatti} Ratti ({calculatedProfile.prescribedCarat} ct)
+                </span>
+              </div>
               <button
                 onClick={() => setSelectedGemId(nameDestinyGemData.id)}
                 className="text-xs font-semibold text-amber-900 hover:text-amber-950 flex items-center gap-1 cursor-pointer"
@@ -1252,7 +1527,7 @@ export const GemstoneRecommender: React.FC<GemstoneRecommenderProps> = ({
           <div className="space-y-1">
             <h2 className="text-lg font-bold text-amber-950 font-vedic">Gemstone Compatibility & Anti-Synergy Checker</h2>
             <p className="text-xs sm:text-sm text-stone-600">
-              Never wear incompatible gemstones simultaneously. VedAstro calculates mutual planetary friendship (Mitra), neutrality (Sama), and enmity (Shatru).
+              Never wear incompatible gemstones simultaneously. Vedic astrology calculates mutual planetary friendship (Mitra), neutrality (Sama), and enmity (Shatru).
             </p>
           </div>
 
@@ -1557,6 +1832,31 @@ export const GemstoneRecommender: React.FC<GemstoneRecommenderProps> = ({
             {/* Modal Body */}
             <div className="p-6 space-y-6 max-h-[75vh] overflow-y-auto">
               
+              {/* Native's Body-Weight Dosage Prescribed Banner */}
+              <div className="bg-amber-50 border border-amber-300/80 rounded-2xl p-4 flex items-center justify-between gap-3 shadow-2xs">
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-xl bg-amber-900 text-amber-50 flex items-center justify-center shrink-0 shadow-sm">
+                    <Scale className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <span className="text-[11px] font-bold text-amber-900 uppercase block font-vedic">
+                      Dosage Prescribed for {birthDetails.name || 'Native'}
+                    </span>
+                    <span className="text-xs text-stone-600">
+                      Based on {calculatedProfile.bodyWeightKg} kg body weight ({calculatedProfile.gender})
+                    </span>
+                  </div>
+                </div>
+                <div className="text-right shrink-0">
+                  <div className="text-base font-bold text-amber-950 font-mono">
+                    {calculatedProfile.prescribedIdealRatti} Ratti
+                  </div>
+                  <div className="text-[11px] text-amber-900 font-semibold font-mono">
+                    ({calculatedProfile.prescribedCarat} Carats)
+                  </div>
+                </div>
+              </div>
+
               {/* Prescribed Wearing Specifications */}
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-xs">
                 <div className="p-2.5 rounded-xl bg-stone-50 border border-stone-200">
@@ -1680,8 +1980,23 @@ export const GemstoneRecommender: React.FC<GemstoneRecommenderProps> = ({
                   value={nativeName}
                   onChange={(e) => setNativeName(e.target.value)}
                   className="w-full p-2.5 rounded-xl border border-stone-300 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 font-medium"
-                  placeholder="e.g. Himaghna Medhi"
+                  placeholder="Enter Native Name"
                 />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <label className="text-xs font-bold text-stone-700 uppercase font-vedic">Gender:</label>
+                  <div className="p-2.5 rounded-xl border border-stone-200 bg-stone-50 text-xs font-semibold capitalize text-stone-800">
+                    {calculatedProfile.gender}
+                  </div>
+                </div>
+                <div className="space-y-1">
+                  <label className="text-xs font-bold text-stone-700 uppercase font-vedic">Body Weight:</label>
+                  <div className="p-2.5 rounded-xl border border-stone-200 bg-stone-50 text-xs font-semibold text-stone-800">
+                    {calculatedProfile.bodyWeightKg} kg ({Math.round(calculatedProfile.bodyWeightKg * 2.20462)} lbs)
+                  </div>
+                </div>
               </div>
 
               <div className="space-y-1">
@@ -1699,13 +2014,26 @@ export const GemstoneRecommender: React.FC<GemstoneRecommenderProps> = ({
                 </select>
               </div>
 
-              <div className="p-4 rounded-2xl bg-amber-50 border border-amber-200 text-xs space-y-2">
-                <strong className="text-amber-950 font-vedic block">Prescription Summary for {nativeName} ({currentLagnaData.lagnaName}):</strong>
-                <div className="space-y-1 text-stone-700">
-                  <div>• <strong>Life Stone:</strong> {currentLagnaData.lifeStone.gemName} ({currentLagnaData.lifeStone.houseRulership})</div>
-                  <div>• <strong>Lucky Stone:</strong> {currentLagnaData.luckyStone.gemName} ({currentLagnaData.luckyStone.houseRulership})</div>
-                  <div>• <strong>Punya Stone:</strong> {currentLagnaData.punyaStone.gemName} ({currentLagnaData.punyaStone.houseRulership})</div>
-                  <div>• <strong>Recommended Carat:</strong> {calculatedIdealRatti} Ratti ({calculatedCarat} Carats)</div>
+              <div className="p-4 rounded-2xl bg-amber-50 border border-amber-200 text-xs space-y-2.5">
+                <strong className="text-amber-950 font-vedic block text-sm">
+                  Vedic Prescription Summary for {nativeName || 'Native'} ({currentLagnaData.lagnaName}):
+                </strong>
+                <div className="space-y-1.5 text-stone-700">
+                  <div className="flex justify-between border-b border-amber-200/50 pb-1">
+                    <span>• <strong>Life Stone:</strong> {currentLagnaData.lifeStone.gemName}</span>
+                    <span className="font-mono font-bold text-amber-950">{calculatedProfile.prescribedIdealRatti} Ratti</span>
+                  </div>
+                  <div className="flex justify-between border-b border-amber-200/50 pb-1">
+                    <span>• <strong>Lucky Stone:</strong> {currentLagnaData.luckyStone.gemName}</span>
+                    <span className="font-mono font-bold text-amber-950">{calculatedProfile.prescribedIdealRatti} Ratti</span>
+                  </div>
+                  <div className="flex justify-between border-b border-amber-200/50 pb-1">
+                    <span>• <strong>Punya Stone:</strong> {currentLagnaData.punyaStone.gemName}</span>
+                    <span className="font-mono font-bold text-amber-950">{calculatedProfile.prescribedIdealRatti} Ratti</span>
+                  </div>
+                  <div className="pt-1 text-stone-600 text-[11px]">
+                    Prescribed metric equivalent: <strong className="text-amber-950">{calculatedProfile.prescribedCarat} Carats</strong> (Min baseline: {calculatedProfile.prescribedMinRatti} Ratti).
+                  </div>
                 </div>
               </div>
             </div>

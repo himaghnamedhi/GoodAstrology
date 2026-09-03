@@ -1,17 +1,68 @@
-import React, { useState } from 'react';
-import { X, Printer, Sparkles, Compass, Award, ShieldCheck, Heart, Zap, FileText, CheckCircle2 } from 'lucide-react';
+import React, { useState, useMemo } from 'react';
+import { 
+  X, 
+  Printer, 
+  Download, 
+  Sparkles, 
+  Heart, 
+  Gem, 
+  FileText, 
+  CheckCircle2, 
+  RotateCcw,
+  ZoomIn,
+  ZoomOut,
+  ChevronRight,
+  User,
+  Calendar,
+  MapPin,
+  Scale,
+  Loader2
+} from 'lucide-react';
+import { jsPDF } from 'jspdf';
+import html2canvas from 'html2canvas';
+
 import { HouseNumber, PlanetId, ChartStyle } from '../types/astrology';
 import { HOUSES_DATA, NORTH_CHART_GEOMETRY } from '../data/housesData';
 import { PLANETS_DATA } from '../data/planetsData';
+import { 
+  calculateVedAstroMatch, 
+  VedAstroMatchReport, 
+  MATCH_PRESETS 
+} from '../data/vedicMatchCalculator';
+import { 
+  calculateVedicBirthProfile, 
+  BirthDetails, 
+  CalculatedBirthProfile 
+} from '../data/vedicAstrologyCalculator';
+import { 
+  LAGNA_RECOMMENDATIONS, 
+  NAVARATNA_DATA 
+} from '../data/gemstoneData';
 
-interface CustomReportModalProps {
+import { KundliReportPages } from './reports/KundliReportPages';
+import { MatchReportPages } from './reports/MatchReportPages';
+import { GemstoneReportPage } from './reports/GemstoneReportPage';
+
+export type ReportModalType = 'kundli' | 'match' | 'gemstone';
+
+export interface CustomReportModalProps {
   isOpen: boolean;
   onClose: () => void;
+  initialReportType?: ReportModalType;
+  // Kundli inputs
   placements: Record<PlanetId, HouseNumber>;
   chartStyle?: ChartStyle;
   initialName?: string;
   initialLagna?: string;
   initialBirthDetails?: string;
+  // Match inputs (optional)
+  initialMatchReport?: VedAstroMatchReport;
+  initialP1Details?: BirthDetails;
+  initialP2Details?: BirthDetails;
+  // Gemstone inputs (optional)
+  initialGemstoneLagna?: number;
+  initialGemstoneProfile?: CalculatedBirthProfile;
+  initialGemstoneNativeName?: string;
 }
 
 const ZODIAC_SIGNS = [
@@ -32,41 +83,102 @@ const ZODIAC_SIGNS = [
 export const CustomReportModal: React.FC<CustomReportModalProps> = ({
   isOpen,
   onClose,
+  initialReportType = 'kundli',
   placements,
   chartStyle: initialChartStyle = 'north',
-  initialName = 'Native',
+  initialName = '',
   initialLagna = 'Aries (Mesha) ♈',
   initialBirthDetails = '',
+  initialMatchReport,
+  initialP1Details,
+  initialP2Details,
+  initialGemstoneLagna = 1,
+  initialGemstoneProfile,
+  initialGemstoneNativeName = '',
 }) => {
+  // Active Report Type State
+  const [activeReportType, setActiveReportType] = useState<ReportModalType>(initialReportType);
+  const [isExporting, setIsExporting] = useState<boolean>(false);
+  const [exportProgress, setExportProgress] = useState<string>('');
+
+  // 1. Kundli State
   const [nativeName, setNativeName] = useState(initialName);
   const [lagnaSign, setLagnaSign] = useState(initialLagna);
   const [birthDetails, setBirthDetails] = useState(initialBirthDetails);
   const [reportChartStyle, setReportChartStyle] = useState<ChartStyle>(initialChartStyle);
 
-  if (!isOpen) return null;
-
-  const handlePrint = () => {
-    window.print();
-  };
-
-  const getOrdinal = (n: number) => {
-    const s = ['th', 'st', 'nd', 'rd'];
-    const v = n % 100;
-    return n + (s[(v - 20) % 10] || s[v] || s[0]);
-  };
-
-  // Group planets by house
-  const houseOccupants: Record<HouseNumber, PlanetId[]> = {
-    1: [], 2: [], 3: [], 4: [], 5: [], 6: [], 7: [], 8: [], 9: [], 10: [], 11: [], 12: []
-  };
-  Object.entries(placements).forEach(([pId, hNum]) => {
-    houseOccupants[hNum as HouseNumber].push(pId as PlanetId);
+  // 2. Match Finder State
+  const [p1Details, setP1Details] = useState<BirthDetails>(() => initialP1Details || {
+    name: 'Groom (Var)',
+    gender: 'male',
+    dob: '1996-05-15',
+    tob: '08:30',
+    city: 'Varanasi (Kashi)',
+    latitude: 25.3176,
+    longitude: 82.9739,
+    timezoneOffset: 5.5,
+    weightKg: 68,
+    weightUnit: 'kg',
   });
 
-  // Calculate Vedic Yogas
-  const detectYogas = () => {
-    const yogas: { name: string; type: 'Auspicious Raja Yoga' | 'Wealth & Dharma' | 'Wisdom' | 'Special Formation' | 'Planetary Dosha'; desc: string; planets: string }[] = [];
+  const [p2Details, setP2Details] = useState<BirthDetails>(() => initialP2Details || {
+    name: 'Bride (Kanya)',
+    gender: 'female',
+    dob: '1998-08-20',
+    tob: '14:15',
+    city: 'Guwahati, Assam',
+    latitude: 26.1445,
+    longitude: 91.7362,
+    timezoneOffset: 5.5,
+    weightKg: 55,
+    weightUnit: 'kg',
+  });
 
+  // Calculate or use match report
+  const currentMatchReport: VedAstroMatchReport = useMemo(() => {
+    if (initialMatchReport && p1Details.name === initialMatchReport.partner1.name && p2Details.name === initialMatchReport.partner2.name) {
+      return initialMatchReport;
+    }
+    return calculateVedAstroMatch(p1Details, p2Details);
+  }, [initialMatchReport, p1Details, p2Details]);
+
+  // 3. Gemstone State
+  const [gemNativeName, setGemNativeName] = useState<string>(initialGemstoneNativeName || initialName || 'Auspicious Native');
+  const [selectedGemLagna, setSelectedGemLagna] = useState<number>(initialGemstoneLagna);
+  const [gemWeightKg, setGemWeightKg] = useState<number>(initialGemstoneProfile?.bodyWeightKg || 65);
+  const [gemGender, setGemGender] = useState<'male' | 'female' | 'other'>(initialGemstoneProfile?.gender || 'male');
+
+  const currentGemstoneProfile: CalculatedBirthProfile = useMemo(() => {
+    return calculateVedicBirthProfile({
+      name: gemNativeName,
+      gender: gemGender,
+      weightKg: gemWeightKg,
+      weightUnit: 'kg',
+      dob: '1998-05-15',
+      tob: '12:00',
+      city: 'New Delhi',
+      latitude: 28.6139,
+      longitude: 77.2090,
+      timezoneOffset: 5.5,
+    });
+  }, [gemNativeName, gemGender, gemWeightKg]);
+
+  const currentLagnaData = LAGNA_RECOMMENDATIONS[selectedGemLagna] || LAGNA_RECOMMENDATIONS[1];
+
+  // Group planets by house for Kundli report
+  const houseOccupants: Record<HouseNumber, PlanetId[]> = useMemo(() => {
+    const map: Record<HouseNumber, PlanetId[]> = {
+      1: [], 2: [], 3: [], 4: [], 5: [], 6: [], 7: [], 8: [], 9: [], 10: [], 11: [], 12: []
+    };
+    Object.entries(placements).forEach(([pId, hNum]) => {
+      map[hNum as HouseNumber].push(pId as PlanetId);
+    });
+    return map;
+  }, [placements]);
+
+  // Detected Yogas for Kundli report
+  const detectedYogas = useMemo(() => {
+    const yogas: { name: string; type: string; desc: string; planets: string }[] = [];
     const jupH = placements.jupiter;
     const moonH = placements.moon;
     const sunH = placements.sun;
@@ -74,128 +186,84 @@ export const CustomReportModal: React.FC<CustomReportModalProps> = ({
     const marsH = placements.mars;
     const venH = placements.venus;
     const satH = placements.saturn;
-    const rahuH = placements.rahu;
-    const ketuH = placements.ketu;
 
     const kendras: HouseNumber[] = [1, 4, 7, 10];
     const trikonas: HouseNumber[] = [1, 5, 9];
 
-    // Gajakesari Yoga: Jupiter and Moon in mutual kendras or both in kendras
+    // Gajakesari Yoga
     const isMutualKendra = Math.abs(jupH - moonH) === 0 || Math.abs(jupH - moonH) === 3 || Math.abs(jupH - moonH) === 6 || Math.abs(jupH - moonH) === 9;
     if ((kendras.includes(jupH) && kendras.includes(moonH)) || isMutualKendra) {
       yogas.push({
         name: 'Gajakesari Yoga (गजकेसरी योग)',
         type: 'Auspicious Raja Yoga',
-        desc: 'Jupiter and Moon occupy Kendra positions relative to each other, conferring nobility, high wisdom, lasting social repute, and protection from adversity.',
+        desc: 'Jupiter and Moon occupy Kendra positions relative to each other, conferring nobility, lasting wisdom, and high social honor.',
         planets: 'Jupiter (Guru) & Moon (Chandra)',
       });
     }
 
-    // Budhaditya Yoga: Sun & Mercury in same house
+    // Budhaditya Yoga
     if (sunH === mercH) {
       yogas.push({
         name: 'Budhaditya Yoga (बुधादित्य योग)',
-        type: 'Wisdom',
-        desc: `Sun and Mercury conjunct in the ${getOrdinal(sunH)} House, fostering sharp analytical intellect, executive speech, administrative talent, and educational acclaim.`,
+        type: 'Wisdom & Leadership',
+        desc: `Sun and Mercury conjunct in the ${sunH}th House, bestowing analytical intellect, executive speech, and scholarly acumen.`,
         planets: 'Sun (Surya) & Mercury (Budha)',
       });
     }
 
-    // Chandra-Mangala Yoga: Moon & Mars conjunct
+    // Chandra-Mangala Yoga
     if (moonH === marsH) {
       yogas.push({
         name: 'Chandra-Mangala Yoga (चन्द्र-मङ्गल योग)',
-        type: 'Wealth & Dharma',
-        desc: `Moon and Mars united in the ${getOrdinal(moonH)} House, bestowing relentless enterprise, commercial acumen, material prosperity, and real estate acumen.`,
+        type: 'Wealth & Enterprise',
+        desc: `Moon and Mars united in the ${moonH}th House, granting fierce commercial drive, resourcefulness, and real estate prosperity.`,
         planets: 'Moon (Chandra) & Mars (Mangal)',
       });
     }
 
-    // Guru-Mangala Yoga
-    if (jupH === marsH) {
-      yogas.push({
-        name: 'Guru-Mangala Yoga (गुरु-मङ्गल योग)',
-        type: 'Auspicious Raja Yoga',
-        desc: `Jupiter and Mars conjunction in the ${getOrdinal(jupH)} House, giving righteous leadership, moral courage, energetic execution, and respect in authoritative circles.`,
-        planets: 'Jupiter (Guru) & Mars (Mangal)',
-      });
-    }
-
-    // Lakshmi Yoga: Venus in 1st, 5th, or 9th house, or strong in Kendras
+    // Lakshmi Yoga
     if (trikonas.includes(venH) || venH === 2 || venH === 11) {
       yogas.push({
-        name: 'Lakshmi Yoga / Dhana Yoga (लक्ष्मी योग)',
-        type: 'Wealth & Dharma',
-        desc: `Venus favorably placed in the ${getOrdinal(venH)} House, blessing the native with aesthetic elegance, artistic abundance, domestic joy, and reliable wealth streams.`,
+        name: 'Lakshmi Yoga (लक्ष्मी योग)',
+        type: 'Wealth & Grace',
+        desc: `Venus favorably positioned in the ${venH}th House, blessing with artistic grace, domestic joy, and reliable abundance.`,
         planets: 'Venus (Shukra)',
       });
     }
 
-    // Amala Yoga: Benefic (Jupiter, Venus, or Mercury) in 10th house
-    if (jupH === 10 || venH === 10 || mercH === 10) {
-      yogas.push({
-        name: 'Amala Yoga (अमला योग)',
-        type: 'Auspicious Raja Yoga',
-        desc: 'Natural benefic planet in the 10th House of Career, indicating pure reputation, professional integrity, philanthropic deeds, and lasting public honor.',
-        planets: [jupH === 10 ? 'Jupiter' : '', venH === 10 ? 'Venus' : '', mercH === 10 ? 'Mercury' : ''].filter(Boolean).join(', '),
-      });
-    }
-
-    // Dharma-Karmadhipati Raja Yoga: 9th & 10th house connection
-    if ((sunH === 9 && marsH === 10) || (jupH === 9 && satH === 10) || (placements.sun === 10 && placements.jupiter === 9)) {
-      yogas.push({
-        name: 'Dharma-Karmadhipati Yoga (धर्म-कर्माधिपति योग)',
-        type: 'Auspicious Raja Yoga',
-        desc: 'Integration between 9th House of Destiny and 10th House of Action, creating high governmental status, purpose-driven vocation, and societal triumph.',
-        planets: '9th & 10th House Lords / Occupants',
-      });
-    }
-
-    // Saraswati Yoga: Mercury, Jupiter, Venus in Kendras/Trikonas/2nd house
+    // Saraswati Yoga
     const beneficsInGoodHouses = [mercH, jupH, venH].every(h => kendras.includes(h) || trikonas.includes(h) || h === 2);
     if (beneficsInGoodHouses) {
       yogas.push({
         name: 'Saraswati Yoga (सरस्वती योग)',
-        type: 'Wisdom',
-        desc: 'All three primary benefic planets (Mercury, Jupiter, Venus) positioned in auspicious houses, granting mastery over sciences, arts, speech, and literature.',
+        type: 'Learning & Eloquence',
+        desc: 'All three natural benefic planets occupy quadrants or trines, granting mastery over speech, fine arts, and literature.',
         planets: 'Mercury, Jupiter & Venus',
       });
     }
 
-    // Vipareeta Raja Yoga (Sarala / Harsha / Vimala): 6th, 8th, 12th lords or placements
+    // Vipareeta Raja Yoga
     if ([6, 8, 12].includes(satH) || [6, 8, 12].includes(marsH)) {
       yogas.push({
-        name: 'Vipareeta Raja Yoga Influences (विपरीत राजयोग)',
-        type: 'Special Formation',
-        desc: 'Planetary energy placed in trik/dusthana houses converting sudden obstacles and competitive rivalries into unexpected breakthroughs and triumph.',
+        name: 'Vipareeta Raja Yoga (विपरीत राजयोग)',
+        type: 'Breakthrough Energy',
+        desc: 'Planetary energy placed in dusthana houses transforming sudden hurdles into unexpected triumphs.',
         planets: 'Dusthana House Activations',
       });
     }
 
-    // Manglik / Kuja Consideration: Mars in 1, 4, 7, 8, 12
+    // Kuja Consideration
     if ([1, 4, 7, 8, 12].includes(marsH)) {
       yogas.push({
-        name: 'Kuja / Manglik Consideration (मङ्गल स्थिति)',
-        type: 'Planetary Dosha',
-        desc: `Mars positioned in the ${getOrdinal(marsH)} House requires conscious energy channeling in partnerships, dynamic communication, and mutual patience in marital dynamics.`,
+        name: 'Kuja / Manglik Influence (मङ्गल स्थिति)',
+        type: 'Partnership Alignment',
+        desc: `Mars placed in the ${marsH}th House emphasizes dynamic communication and mutual patience in marital dynamics.`,
         planets: 'Mars (Mangal)',
       });
     }
 
-    // Raja Yoga (Kendra + Trikona Lord Activations)
-    if (kendras.includes(sunH) && trikonas.includes(jupH)) {
-      yogas.push({
-        name: 'Maharaja Yoga (साम्राज्य योग)',
-        type: 'Auspicious Raja Yoga',
-        desc: 'Powerful alignment of Solar authority and Jovian wisdom across prime quadrants, ensuring executive leadership and high social esteem.',
-        planets: 'Sun & Jupiter Synergy',
-      });
-    }
-
     return yogas;
-  };
-
-  const detectedYogas = detectYogas();
+  }, [placements]);
 
   // Summary counts
   const kendraCount = (Object.keys(placements) as PlanetId[]).filter(p => [1, 4, 7, 10].includes(placements[p])).length;
@@ -203,11 +271,107 @@ export const CustomReportModal: React.FC<CustomReportModalProps> = ({
   const upachayaCount = (Object.keys(placements) as PlanetId[]).filter(p => [3, 6, 10, 11].includes(placements[p])).length;
   const dusthanaCount = (Object.keys(placements) as PlanetId[]).filter(p => [6, 8, 12].includes(placements[p])).length;
 
+  if (!isOpen) return null;
+
+  // Direct High-Resolution A4 PDF Generation using jsPDF + html2canvas
+  const handleDownloadPDF = async () => {
+    setIsExporting(true);
+    setExportProgress('Initializing High-Res PDF Engine...');
+
+    try {
+      const reportContainer = document.getElementById('printable-report-area');
+      if (!reportContainer) {
+        throw new Error('Report container not found');
+      }
+
+      // Collect all .a4-report-page elements in order
+      const pageElements = Array.from(reportContainer.querySelectorAll('.a4-report-page')) as HTMLElement[];
+      if (!pageElements.length) {
+        throw new Error('No printable A4 pages found');
+      }
+
+      // Create pristine A4 jsPDF instance (210mm x 297mm)
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4',
+        compress: true,
+      });
+
+      for (let i = 0; i < pageElements.length; i++) {
+        setExportProgress(`Rendering High-Definition Page ${i + 1} of ${pageElements.length}...`);
+        const pageEl = pageElements[i];
+
+        // Render page to high-res canvas at scale: 2 for 300+ DPI crispness
+        const canvas = await html2canvas(pageEl, {
+          scale: 2,
+          useCORS: true,
+          logging: false,
+          backgroundColor: '#ffffff',
+          windowWidth: 794, // exact 210mm in pixels at 96 DPI
+        });
+
+        const imgData = canvas.toDataURL('image/jpeg', 0.96);
+
+        if (i > 0) {
+          pdf.addPage('a4', 'portrait');
+        }
+
+        // Exact A4 dimensions in mm: 210 x 297
+        pdf.addImage(imgData, 'JPEG', 0, 0, 210, 297, undefined, 'FAST');
+      }
+
+      setExportProgress('Finalizing and Saving Document...');
+
+      // Dynamic filename based on report type
+      let fileName = 'Vedic_Report.pdf';
+      if (activeReportType === 'kundli') {
+        const nameClean = (nativeName || 'Native').trim().replace(/[^a-zA-Z0-9_-]/g, '_');
+        fileName = `Vedic_Kundli_Janam_Patrika_${nameClean}.pdf`;
+      } else if (activeReportType === 'match') {
+        const p1 = (p1Details.name || 'Groom').trim().replace(/[^a-zA-Z0-9_-]/g, '_');
+        const p2 = (p2Details.name || 'Bride').trim().replace(/[^a-zA-Z0-9_-]/g, '_');
+        fileName = `Kundali_Milan_Match_Report_${p1}_and_${p2}.pdf`;
+      } else {
+        const nameClean = (gemNativeName || 'Native').trim().replace(/[^a-zA-Z0-9_-]/g, '_');
+        fileName = `Vedic_Gemstone_Prescription_${nameClean}.pdf`;
+      }
+
+      pdf.save(fileName);
+    } catch (err) {
+      console.error('High-Res PDF generation error:', err);
+      // Seamless fallback to browser native print dialog
+      window.print();
+    } finally {
+      setIsExporting(false);
+      setExportProgress('');
+    }
+  };
+
+  // Browser Print Dialog
+  const handlePrint = () => {
+    window.print();
+  };
+
   return (
-    <div className="fixed inset-0 z-50 bg-stone-950/80 backdrop-blur-xs flex items-center justify-center p-2 sm:p-4 overflow-y-auto">
-      {/* CSS Print Rules */}
+    <div className="fixed inset-0 z-50 bg-stone-950/85 backdrop-blur-xs flex items-center justify-center p-2 sm:p-4 overflow-y-auto">
+      
+      {/* Complete Strict CSS Print Rules Ensuring Zero Spillover and Exactly Covered A4 Pages */}
       <style>{`
+        @page {
+          size: A4 portrait;
+          margin: 0 !important;
+        }
         @media print {
+          html, body {
+            width: 210mm !important;
+            height: 100% !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            background: #ffffff !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+          }
           body * {
             visibility: hidden !important;
           }
@@ -218,54 +382,140 @@ export const CustomReportModal: React.FC<CustomReportModalProps> = ({
             position: absolute !important;
             left: 0 !important;
             top: 0 !important;
-            width: 100% !important;
+            width: 210mm !important;
             margin: 0 !important;
-            padding: 20px !important;
-            background: white !important;
-            color: black !important;
+            padding: 0 !important;
+            background: #ffffff !important;
             box-shadow: none !important;
             border: none !important;
+            display: block !important;
+          }
+          .a4-report-page {
+            width: 210mm !important;
+            height: 297mm !important;
+            min-height: 297mm !important;
+            max-height: 297mm !important;
+            margin: 0 !important;
+            padding: 7mm 7mm !important;
+            box-sizing: border-box !important;
+            page-break-after: always !important;
+            break-after: page !important;
+            page-break-inside: avoid !important;
+            break-inside: avoid !important;
+            overflow: hidden !important;
+            background: #ffffff !important;
+            box-shadow: none !important;
+            border: none !important;
+            display: flex !important;
+            flex-direction: column !important;
+            justify-content: space-between !important;
+          }
+          .a4-report-page:last-child {
+            page-break-after: avoid !important;
+            break-after: avoid !important;
           }
           .no-print {
             display: none !important;
           }
-          .page-break {
-            page-break-before: always;
-          }
         }
       `}</style>
 
-      <div className="bg-white rounded-3xl max-w-5xl w-full max-h-[94vh] shadow-2xl border border-stone-200 flex flex-col overflow-hidden">
+      {/* Modal Container */}
+      <div className="bg-stone-100 rounded-3xl max-w-5xl w-full max-h-[96vh] shadow-2xl border border-stone-300 flex flex-col overflow-hidden">
         
-        {/* Modal Top Interactive Toolbar (Hidden during print) */}
-        <div className="p-4 bg-[#FAF8F5] border-b border-stone-200 flex flex-wrap items-center justify-between gap-3 no-print">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-amber-900 text-amber-100 flex items-center justify-center">
-              <FileText className="w-4 h-4" />
+        {/* Top Interactive Toolbar (Hidden in Print) */}
+        <div className="p-3.5 sm:p-4 bg-[#FAF8F5] border-b border-stone-200 flex flex-wrap items-center justify-between gap-3 no-print">
+          <div className="flex items-center gap-2.5">
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-amber-700 to-amber-950 text-amber-100 flex items-center justify-center shadow-xs">
+              <FileText className="w-5 h-5 text-amber-200" />
             </div>
             <div>
               <h3 className="font-vedic font-bold text-amber-950 text-base leading-tight">
-                Vedic Kundli Janam Patrika & Horoscope Report
+                Vedic Astrology Report Generator
               </h3>
               <p className="text-[11px] text-stone-500">
-                Customized for all 9 Navagraha house positions
+                High-resolution astrological dossier &amp; prescription
               </p>
             </div>
           </div>
 
-          {/* Action buttons */}
+          {/* Report Type Selector Tabs */}
+          <div className="flex items-center gap-1 bg-stone-200/80 p-1 rounded-xl border border-stone-300 text-xs font-semibold">
+            <button
+              id="tab-report-kundli"
+              onClick={() => setActiveReportType('kundli')}
+              className={`px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition-all ${
+                activeReportType === 'kundli'
+                  ? 'bg-amber-900 text-amber-50 shadow-xs'
+                  : 'text-stone-700 hover:text-stone-900 hover:bg-stone-100'
+              }`}
+            >
+              <Sparkles className="w-3.5 h-3.5 text-amber-300" />
+              <span>Kundli Patrika</span>
+            </button>
+
+            <button
+              id="tab-report-match"
+              onClick={() => setActiveReportType('match')}
+              className={`px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition-all ${
+                activeReportType === 'match'
+                  ? 'bg-amber-900 text-amber-50 shadow-xs'
+                  : 'text-stone-700 hover:text-stone-900 hover:bg-stone-100'
+              }`}
+            >
+              <Heart className="w-3.5 h-3.5 text-rose-400 fill-rose-400/40" />
+              <span>Match Finder (Milan)</span>
+            </button>
+
+            <button
+              id="tab-report-gemstone"
+              onClick={() => setActiveReportType('gemstone')}
+              className={`px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition-all ${
+                activeReportType === 'gemstone'
+                  ? 'bg-amber-900 text-amber-50 shadow-xs'
+                  : 'text-stone-700 hover:text-stone-900 hover:bg-stone-100'
+              }`}
+            >
+              <Gem className="w-3.5 h-3.5 text-emerald-400" />
+              <span>Gemstone Prescription</span>
+            </button>
+          </div>
+
+          {/* Action Buttons: Download PDF + Print Dialog + Close */}
           <div className="flex items-center gap-2">
+            <button
+              id="btn-download-pdf"
+              onClick={handleDownloadPDF}
+              disabled={isExporting}
+              className="px-4 py-2 rounded-xl bg-amber-900 hover:bg-amber-950 text-amber-50 text-xs font-bold flex items-center gap-2 shadow-sm transition-all active:scale-95 disabled:opacity-60 cursor-pointer"
+              title="Download direct high-resolution PDF"
+            >
+              {isExporting ? (
+                <>
+                  <Loader2 className="w-4 h-4 text-amber-300 animate-spin" />
+                  <span className="hidden sm:inline">Generating PDF...</span>
+                </>
+              ) : (
+                <>
+                  <Download className="w-4 h-4 text-amber-300" />
+                  <span>Download PDF</span>
+                </>
+              )}
+            </button>
+
             <button
               id="btn-print-custom-report"
               onClick={handlePrint}
-              className="px-4 py-2 rounded-xl bg-amber-900 text-amber-50 hover:bg-amber-950 text-xs font-bold flex items-center gap-2 shadow-sm transition-all active:scale-95"
+              className="px-3.5 py-2 rounded-xl bg-white hover:bg-stone-50 text-stone-800 border border-stone-300 text-xs font-bold flex items-center gap-1.5 shadow-2xs transition-all active:scale-95 cursor-pointer"
+              title="Open browser print dialog"
             >
-              <Printer className="w-4 h-4 text-amber-300" />
-              <span>Print / Save as PDF</span>
+              <Printer className="w-4 h-4 text-stone-600" />
+              <span className="hidden sm:inline">Print / Save PDF</span>
             </button>
+
             <button
               onClick={onClose}
-              className="p-2 rounded-xl text-stone-500 hover:text-stone-800 hover:bg-stone-200 transition-colors"
+              className="p-2 rounded-xl text-stone-500 hover:text-stone-800 hover:bg-stone-200 transition-colors cursor-pointer"
               aria-label="Close report modal"
             >
               <X className="w-5 h-5" />
@@ -273,407 +523,231 @@ export const CustomReportModal: React.FC<CustomReportModalProps> = ({
           </div>
         </div>
 
-        {/* User Configuration Bar (Editable metadata before printing) */}
-        <div className="px-5 py-3 bg-amber-50/60 border-b border-amber-900/10 grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs no-print">
-          <div>
-            <label className="block text-[11px] font-bold text-amber-950 mb-1">
-              Person / Native Name:
-            </label>
-            <input
-              type="text"
-              value={nativeName}
-              onChange={(e) => setNativeName(e.target.value)}
-              placeholder="e.g. Himaghna Medhi"
-              className="w-full bg-white border border-stone-300 rounded-lg px-2.5 py-1.5 text-xs text-stone-800 focus:ring-1 focus:ring-amber-800 focus:outline-none"
-            />
-          </div>
+        {/* Dynamic Context Customization Strip based on Active Report Type (Hidden in Print) */}
+        <div className="px-5 py-2.5 bg-amber-50/70 border-b border-amber-900/10 text-xs no-print">
+          {activeReportType === 'kundli' && (
+            <div className="grid grid-cols-1 sm:grid-cols-4 gap-2.5">
+              <div>
+                <label className="block text-[10.5px] font-bold text-amber-950 mb-0.5">
+                  Native's Name:
+                </label>
+                <input
+                  type="text"
+                  value={nativeName}
+                  onChange={(e) => setNativeName(e.target.value)}
+                  placeholder="Enter native's name"
+                  className="w-full bg-white border border-stone-300 rounded-lg px-2 py-1 text-xs text-stone-800 focus:ring-1 focus:ring-amber-800 focus:outline-none"
+                />
+              </div>
 
-          <div>
-            <label className="block text-[11px] font-bold text-amber-950 mb-1">
-              Ascendant / Lagna Sign:
-            </label>
-            <select
-              value={lagnaSign}
-              onChange={(e) => setLagnaSign(e.target.value)}
-              className="w-full bg-white border border-stone-300 rounded-lg px-2 py-1.5 text-xs text-stone-800 focus:ring-1 focus:ring-amber-800 focus:outline-none"
-            >
-              {ZODIAC_SIGNS.map((sign) => (
-                <option key={sign} value={sign}>
-                  {sign}
-                </option>
-              ))}
-            </select>
-          </div>
+              <div>
+                <label className="block text-[10.5px] font-bold text-amber-950 mb-0.5">
+                  Ascendant / Lagna:
+                </label>
+                <select
+                  value={lagnaSign}
+                  onChange={(e) => setLagnaSign(e.target.value)}
+                  className="w-full bg-white border border-stone-300 rounded-lg px-2 py-1 text-xs text-stone-800 focus:ring-1 focus:ring-amber-800 focus:outline-none"
+                >
+                  {ZODIAC_SIGNS.map((sign) => (
+                    <option key={sign} value={sign}>{sign}</option>
+                  ))}
+                </select>
+              </div>
 
-          <div>
-            <label className="block text-[11px] font-bold text-amber-950 mb-1">
-              Birth Details / Place (Optional):
-            </label>
-            <input
-              type="text"
-              value={birthDetails}
-              onChange={(e) => setBirthDetails(e.target.value)}
-              placeholder="e.g. 14 May 1995, 08:30 AM, Guwahati"
-              className="w-full bg-white border border-stone-300 rounded-lg px-2.5 py-1.5 text-xs text-stone-800 focus:ring-1 focus:ring-amber-800 focus:outline-none"
-            />
-          </div>
-        </div>
+              <div>
+                <label className="block text-[10.5px] font-bold text-amber-950 mb-0.5">
+                  Chart Format:
+                </label>
+                <select
+                  value={reportChartStyle}
+                  onChange={(e) => setReportChartStyle(e.target.value as ChartStyle)}
+                  className="w-full bg-white border border-stone-300 rounded-lg px-2 py-1 text-xs text-stone-800 focus:ring-1 focus:ring-amber-800 focus:outline-none"
+                >
+                  <option value="north">North Indian Diamond (लग्न चक्र)</option>
+                  <option value="south">South Indian Grid (दक्षिण चक्र)</option>
+                </select>
+              </div>
 
-        {/* Printable Report Document Body */}
-        <div id="printable-report-area" className="p-6 sm:p-8 overflow-y-auto flex-1 bg-white space-y-8 text-stone-900">
-          
-          {/* Document Header & Sacred Invocation */}
-          <div className="border-b-2 border-stone-800 pb-5 text-center space-y-2">
-            <div className="flex items-center justify-between text-xs text-stone-500 font-serif mb-1">
-              <span>॥ श्री गणेशाय नमः ॥</span>
-              <span className="font-semibold text-amber-900 font-vedic">VEDIC ASTROLOGY HOROSCOPE</span>
-              <span>॥ ॐ नमः शिवाय ॥</span>
+              <div>
+                <label className="block text-[10.5px] font-bold text-amber-950 mb-0.5">
+                  Birth Details / Place:
+                </label>
+                <input
+                  type="text"
+                  value={birthDetails}
+                  onChange={(e) => setBirthDetails(e.target.value)}
+                  placeholder="e.g. 15 May 1996, 08:30 AM, Guwahati"
+                  className="w-full bg-white border border-stone-300 rounded-lg px-2 py-1 text-xs text-stone-800 focus:ring-1 focus:ring-amber-800 focus:outline-none"
+                />
+              </div>
             </div>
+          )}
 
-            <h1 className="text-2xl sm:text-3xl font-extrabold font-vedic text-stone-900 tracking-tight">
-              KUNDLI JANAM PATRIKA & BHAVA ANALYSIS REPORT
-            </h1>
-            
-            <p className="text-xs text-stone-600 max-w-2xl mx-auto">
-              Comprehensive Vedic horoscope analysis for 12 Bhavas, 9 Navagrahas, classical planetary yogas, and personalized karmic remedies.
-            </p>
+          {activeReportType === 'match' && (
+            <div className="grid grid-cols-1 sm:grid-cols-4 gap-2.5">
+              <div>
+                <label className="block text-[10.5px] font-bold text-blue-950 mb-0.5">
+                  Groom (Var) Name:
+                </label>
+                <input
+                  type="text"
+                  value={p1Details.name}
+                  onChange={(e) => setP1Details({ ...p1Details, name: e.target.value })}
+                  placeholder="Groom Name"
+                  className="w-full bg-white border border-stone-300 rounded-lg px-2 py-1 text-xs text-stone-800 focus:ring-1 focus:ring-blue-800 focus:outline-none"
+                />
+              </div>
 
-            {/* Native Info Strip */}
-            <div className="mt-4 pt-3 border-t border-stone-200 grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs bg-stone-50 p-3 rounded-xl border">
               <div>
-                <span className="text-stone-500 block text-[10.5px]">Native Name:</span>
-                <strong className="text-stone-900 font-bold">{nativeName || 'Native'}</strong>
+                <label className="block text-[10.5px] font-bold text-pink-950 mb-0.5">
+                  Bride (Kanya) Name:
+                </label>
+                <input
+                  type="text"
+                  value={p2Details.name}
+                  onChange={(e) => setP2Details({ ...p2Details, name: e.target.value })}
+                  placeholder="Bride Name"
+                  className="w-full bg-white border border-stone-300 rounded-lg px-2 py-1 text-xs text-stone-800 focus:ring-1 focus:ring-pink-800 focus:outline-none"
+                />
               </div>
+
               <div>
-                <span className="text-stone-500 block text-[10.5px]">Lagna (Ascendant):</span>
-                <strong className="text-amber-950 font-bold">{lagnaSign}</strong>
+                <label className="block text-[10.5px] font-bold text-amber-950 mb-0.5">
+                  Match Preset Samples:
+                </label>
+                <select
+                  onChange={(e) => {
+                    const preset = MATCH_PRESETS.find(p => p.id === e.target.value);
+                    if (preset) {
+                      setP1Details(preset.p1);
+                      setP2Details(preset.p2);
+                    }
+                  }}
+                  className="w-full bg-white border border-stone-300 rounded-lg px-2 py-1 text-xs text-stone-800 focus:ring-1 focus:ring-amber-800 focus:outline-none"
+                  defaultValue=""
+                >
+                  <option value="" disabled>Load Kundali Preset...</option>
+                  {MATCH_PRESETS.map((p) => (
+                    <option key={p.id} value={p.id}>{p.title}</option>
+                  ))}
+                </select>
               </div>
-              <div>
-                <span className="text-stone-500 block text-[10.5px]">Chart Format:</span>
-                <strong className="text-stone-900 font-bold">
-                  {reportChartStyle === 'north' ? 'North Indian (Diamond)' : 'South Indian (Box)'}
+
+              <div className="flex items-center justify-between text-xs pt-3">
+                <span className="text-stone-600">Calculated Guna:</span>
+                <strong className="text-amber-950 font-bold font-vedic text-sm">
+                  {currentMatchReport.totalObtainedGunas} / 36 ({currentMatchReport.percentageScore}%)
                 </strong>
               </div>
+            </div>
+          )}
+
+          {activeReportType === 'gemstone' && (
+            <div className="grid grid-cols-1 sm:grid-cols-4 gap-2.5">
               <div>
-                <span className="text-stone-500 block text-[10.5px]">Report Date:</span>
-                <strong className="text-stone-900 font-bold">{new Date().toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}</strong>
+                <label className="block text-[10.5px] font-bold text-amber-950 mb-0.5">
+                  Native's Name:
+                </label>
+                <input
+                  type="text"
+                  value={gemNativeName}
+                  onChange={(e) => setGemNativeName(e.target.value)}
+                  placeholder="Native's Name"
+                  className="w-full bg-white border border-stone-300 rounded-lg px-2 py-1 text-xs text-stone-800 focus:ring-1 focus:ring-amber-800 focus:outline-none"
+                />
               </div>
-              {birthDetails && (
-                <div className="col-span-2 sm:col-span-4 text-left pt-1 border-t border-stone-200/60">
-                  <span className="text-stone-500 text-[10.5px] mr-1">Birth Record:</span>
-                  <strong className="text-stone-800">{birthDetails}</strong>
-                </div>
-              )}
-            </div>
-          </div>
 
-          {/* Chart Core Metrics */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-center text-xs">
-            <div className="p-2.5 bg-amber-50 rounded-xl border border-amber-200">
-              <span className="text-[10.5px] font-semibold text-amber-800 block">Kendra Power (1, 4, 7, 10)</span>
-              <strong className="text-base text-amber-950 font-bold">{kendraCount} Planets</strong>
-            </div>
-            <div className="p-2.5 bg-emerald-50 rounded-xl border border-emerald-200">
-              <span className="text-[10.5px] font-semibold text-emerald-800 block">Trikona Fortune (1, 5, 9)</span>
-              <strong className="text-base text-emerald-950 font-bold">{trikonaCount} Planets</strong>
-            </div>
-            <div className="p-2.5 bg-blue-50 rounded-xl border border-blue-200">
-              <span className="text-[10.5px] font-semibold text-blue-800 block">Upachaya Growth (3, 6, 10, 11)</span>
-              <strong className="text-base text-blue-950 font-bold">{upachayaCount} Planets</strong>
-            </div>
-            <div className="p-2.5 bg-rose-50 rounded-xl border border-rose-200">
-              <span className="text-[10.5px] font-semibold text-rose-800 block">Dusthana Transits (6, 8, 12)</span>
-              <strong className="text-base text-rose-950 font-bold">{dusthanaCount} Planets</strong>
-            </div>
-          </div>
+              <div>
+                <label className="block text-[10.5px] font-bold text-amber-950 mb-0.5">
+                  Ascendant (Lagna):
+                </label>
+                <select
+                  value={selectedGemLagna}
+                  onChange={(e) => setSelectedGemLagna(Number(e.target.value))}
+                  className="w-full bg-white border border-stone-300 rounded-lg px-2 py-1 text-xs text-stone-800 focus:ring-1 focus:ring-amber-800 focus:outline-none"
+                >
+                  {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map((num) => (
+                    <option key={num} value={num}>
+                      {LAGNA_RECOMMENDATIONS[num].lagnaName} - {LAGNA_RECOMMENDATIONS[num].sanskritName}
+                    </option>
+                  ))}
+                </select>
+              </div>
 
-          {/* Kundli SVG Chart & Planetary Positions Table */}
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
+              <div>
+                <label className="block text-[10.5px] font-bold text-amber-950 mb-0.5">
+                  Body Weight (Kg):
+                </label>
+                <input
+                  type="number"
+                  min="20"
+                  max="150"
+                  value={gemWeightKg}
+                  onChange={(e) => setGemWeightKg(Math.max(20, Number(e.target.value)))}
+                  className="w-full bg-white border border-stone-300 rounded-lg px-2 py-1 text-xs text-stone-800 focus:ring-1 focus:ring-amber-800 focus:outline-none"
+                />
+              </div>
+
+              <div className="flex items-center justify-between text-xs pt-3">
+                <span className="text-stone-600">Calculated Ratti:</span>
+                <strong className="text-amber-950 font-bold font-vedic text-sm">
+                  {currentGemstoneProfile.prescribedIdealRatti} Ratti ({currentGemstoneProfile.prescribedCarat} Ct)
+                </strong>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Export Progress Notification (if running) */}
+        {isExporting && (
+          <div className="bg-amber-900 text-amber-100 text-xs px-4 py-2 flex items-center justify-center gap-2 border-b border-amber-950 no-print">
+            <Loader2 className="w-4 h-4 animate-spin text-amber-300" />
+            <span>{exportProgress}</span>
+          </div>
+        )}
+
+        {/* Printable Report Document Body (Rendered with pure A4 calibrated sheets) */}
+        <div className="p-4 sm:p-6 overflow-y-auto flex-1 bg-stone-200/60">
+          <div id="printable-report-area" className="max-w-[794px] mx-auto space-y-6">
             
-            {/* Left: Rendered Visual SVG Kundli Chart */}
-            <div className="lg:col-span-5 flex flex-col items-center justify-center p-3 bg-stone-50 rounded-2xl border border-stone-200">
-              <span className="text-xs font-bold text-amber-950 font-vedic mb-2">
-                {reportChartStyle === 'north' ? 'North Indian Diamond Chart (लग्न चक्र)' : 'South Indian Chart'}
-              </span>
+            {activeReportType === 'kundli' && (
+              <KundliReportPages
+                nativeName={nativeName}
+                lagnaSign={lagnaSign}
+                birthDetails={birthDetails}
+                reportChartStyle={reportChartStyle}
+                placements={placements}
+                houseOccupants={houseOccupants}
+                detectedYogas={detectedYogas}
+                kendraCount={kendraCount}
+                trikonaCount={trikonaCount}
+                upachayaCount={upachayaCount}
+                dusthanaCount={dusthanaCount}
+              />
+            )}
 
-              {reportChartStyle === 'north' ? (
-                <svg
-                  viewBox="0 0 400 400"
-                  className="w-full max-w-[280px] h-auto bg-[#FFFDF9] rounded-xl border border-amber-900/20 shadow-xs"
-                >
-                  {/* Chart Outer Box */}
-                  <rect x="0" y="0" width="400" height="400" fill="#FAF8F5" stroke="#78350f" strokeWidth="2" />
-                  {/* Diagonal Lines */}
-                  <line x1="0" y1="0" x2="400" y2="400" stroke="#78350f" strokeWidth="1.5" />
-                  <line x1="400" y1="0" x2="0" y2="400" stroke="#78350f" strokeWidth="1.5" />
-                  {/* Diamond Lines */}
-                  <line x1="200" y1="0" x2="0" y2="200" stroke="#78350f" strokeWidth="1.5" />
-                  <line x1="0" y1="200" x2="200" y2="400" stroke="#78350f" strokeWidth="1.5" />
-                  <line x1="200" y1="400" x2="400" y2="200" stroke="#78350f" strokeWidth="1.5" />
-                  <line x1="400" y1="200" x2="200" y2="0" stroke="#78350f" strokeWidth="1.5" />
+            {activeReportType === 'match' && (
+              <MatchReportPages
+                matchReport={currentMatchReport}
+                p1Details={p1Details}
+                p2Details={p2Details}
+              />
+            )}
 
-                  {/* House Numbers and Occupants */}
-                  {([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12] as HouseNumber[]).map((hNum) => {
-                    const geo = NORTH_CHART_GEOMETRY[hNum];
-                    const occupants = houseOccupants[hNum];
-
-                    return (
-                      <g key={hNum}>
-                        <text
-                          x={geo.labelX}
-                          y={geo.labelY}
-                          textAnchor="middle"
-                          fill="#78350f"
-                          fontSize="11"
-                          fontWeight="bold"
-                        >
-                          {hNum}
-                        </text>
-
-                        {occupants.length > 0 && (
-                          <text
-                            x={geo.badgeX}
-                            y={geo.badgeY}
-                            textAnchor="middle"
-                            fill="#92400e"
-                            fontSize="9.5"
-                            fontWeight="bold"
-                          >
-                            {occupants.map(p => PLANETS_DATA[p].sanskritName.slice(0, 2)).join(' ')}
-                          </text>
-                        )}
-                      </g>
-                    );
-                  })}
-                </svg>
-              ) : (
-                <div className="w-full max-w-[280px] grid grid-cols-4 grid-rows-4 gap-1 p-2 bg-amber-50 rounded-xl border border-stone-300 aspect-square text-[10px]">
-                  {([12, 1, 2, 3, 11, 0, 0, 4, 10, 0, 0, 5, 9, 8, 7, 6] as number[]).map((hNum, idx) => {
-                    if (hNum === 0) {
-                      if (idx === 5) {
-                        return (
-                          <div key={idx} className="col-span-2 row-span-2 bg-[#FFFDF9] flex items-center justify-center p-2 text-center border border-stone-200 rounded">
-                            <span className="font-vedic font-bold text-amber-950 text-xs">South Chart</span>
-                          </div>
-                        );
-                      }
-                      return null;
-                    }
-                    const num = hNum as HouseNumber;
-                    const occupants = houseOccupants[num];
-                    return (
-                      <div key={idx} className="bg-white p-1 border border-stone-200 rounded flex flex-col justify-between">
-                        <span className="font-bold text-amber-900">{num}H</span>
-                        <span className="text-[8.5px] font-semibold text-stone-700">
-                          {occupants.map(p => PLANETS_DATA[p].name.slice(0, 2)).join(', ')}
-                        </span>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-
-              <p className="text-[10px] text-stone-500 mt-2 text-center">
-                Numbered 1 to 12 as per classical Bhava progression
-              </p>
-            </div>
-
-            {/* Right: 9 Navagraha Positions Table */}
-            <div className="lg:col-span-7 space-y-2">
-              <h3 className="text-xs font-bold uppercase tracking-wider text-stone-800 flex items-center gap-1.5">
-                <Sparkles className="w-3.5 h-3.5 text-amber-700" />
-                Navagraha Planetary Positions & Dignities:
-              </h3>
-              
-              <div className="border border-stone-300 rounded-xl overflow-hidden text-xs">
-                <table className="w-full text-left border-collapse">
-                  <thead className="bg-stone-100 text-stone-800 font-bold border-b border-stone-300 text-[11px]">
-                    <tr>
-                      <th className="p-2 border-r border-stone-300">Graha</th>
-                      <th className="p-2 border-r border-stone-300">House</th>
-                      <th className="p-2 border-r border-stone-300">Bhava Name</th>
-                      <th className="p-2 border-r border-stone-300">Gemstone</th>
-                      <th className="p-2">Beej Mantra</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-stone-200 text-[11px]">
-                    {(Object.keys(PLANETS_DATA) as PlanetId[]).map((pId) => {
-                      const p = PLANETS_DATA[pId];
-                      const hNum = placements[pId];
-                      const h = HOUSES_DATA[hNum];
-                      return (
-                        <tr key={pId} className="hover:bg-amber-50/40">
-                          <td className="p-2 font-bold text-stone-900 border-r border-stone-200">
-                            {p.avatar} {p.name} ({p.sanskritName})
-                          </td>
-                          <td className="p-2 font-bold text-amber-900 border-r border-stone-200">
-                            {getOrdinal(hNum)} House
-                          </td>
-                          <td className="p-2 text-stone-700 font-vedic border-r border-stone-200">
-                            {h.sanskritName.split(' ')[0]}
-                          </td>
-                          <td className="p-2 text-stone-700 border-r border-stone-200">
-                            {p.gemstone}
-                          </td>
-                          <td className="p-2 text-stone-600 font-mono text-[10px] truncate max-w-[120px]" title={p.beejMantra}>
-                            {p.beejMantra}
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-            </div>
+            {activeReportType === 'gemstone' && (
+              <GemstoneReportPage
+                nativeName={gemNativeName}
+                selectedLagna={selectedGemLagna}
+                calculatedProfile={currentGemstoneProfile}
+                currentLagnaData={currentLagnaData}
+                gender={gemGender}
+                bodyWeightKg={gemWeightKg}
+                birthDetailsText={`Consultation for ${gemNativeName}, ${currentLagnaData.lagnaName} Lagna (${gemWeightKg} kg)`}
+              />
+            )}
 
           </div>
-
-          {/* Detected Classical Vedic Yogas */}
-          <div className="space-y-3 pt-2">
-            <div className="flex items-center justify-between border-b border-stone-300 pb-2">
-              <h3 className="text-sm font-bold uppercase tracking-wider text-stone-900 font-vedic flex items-center gap-1.5">
-                <Award className="w-4 h-4 text-amber-700" />
-                Detected Classical Vedic Yogas & Formations ({detectedYogas.length})
-              </h3>
-              <span className="text-[11px] text-stone-500 font-semibold">Parashara & Jaimini Principles</span>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              {detectedYogas.map((yoga, idx) => (
-                <div
-                  key={idx}
-                  className="p-3.5 rounded-xl border border-stone-200 bg-[#FAF8F5] space-y-1.5 text-xs"
-                >
-                  <div className="flex items-center justify-between">
-                    <span className="font-bold text-amber-950 font-vedic text-xs">
-                      {yoga.name}
-                    </span>
-                    <span className="text-[9.5px] px-2 py-0.5 rounded-full bg-amber-100 text-amber-900 font-semibold">
-                      {yoga.type}
-                    </span>
-                  </div>
-                  <p className="text-stone-700 leading-relaxed text-[11.5px]">
-                    {yoga.desc}
-                  </p>
-                  <div className="text-[10px] text-stone-500 pt-1 border-t border-stone-200 flex justify-between">
-                    <span>Involved Grahas:</span>
-                    <strong className="text-stone-800">{yoga.planets}</strong>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Comprehensive 12 Bhavas Horoscope Interpretations */}
-          <div className="space-y-3 pt-2 page-break">
-            <div className="border-b border-stone-300 pb-2 flex items-center justify-between">
-              <h3 className="text-sm font-bold uppercase tracking-wider text-stone-900 font-vedic flex items-center gap-1.5">
-                <Compass className="w-4 h-4 text-amber-700" />
-                Comprehensive 12 Bhavas (Houses) Life Interpretations
-              </h3>
-              <span className="text-[11px] text-stone-500 font-semibold">House-by-House Destiny Breakdown</span>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
-              {([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12] as HouseNumber[]).map((hNum) => {
-                const h = HOUSES_DATA[hNum];
-                const occupants = houseOccupants[hNum];
-
-                return (
-                  <div
-                    key={hNum}
-                    className="p-3.5 rounded-xl border border-stone-200 bg-white space-y-2 text-xs"
-                  >
-                    <div className="flex items-center justify-between border-b border-stone-100 pb-1.5">
-                      <div className="flex items-center gap-1.5">
-                        <span className="w-5 h-5 rounded-full bg-amber-900 text-amber-50 flex items-center justify-center font-bold text-[10px]">
-                          {hNum}
-                        </span>
-                        <div>
-                          <strong className="text-amber-950 font-vedic text-xs block">{h.sanskritName}</strong>
-                          <span className="text-[10px] text-stone-500">{h.name}</span>
-                        </div>
-                      </div>
-                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-stone-100 text-stone-700 font-semibold">
-                        {h.classification.category}
-                      </span>
-                    </div>
-
-                    {/* Occupants & Detailed predictions */}
-                    {occupants.length > 0 ? (
-                      <div className="space-y-1.5 pt-1">
-                        <div className="flex flex-wrap gap-1">
-                          {occupants.map((pId) => (
-                            <span key={pId} className="px-2 py-0.5 rounded bg-amber-100/80 text-amber-950 text-[10.5px] font-bold">
-                              {PLANETS_DATA[pId].avatar} {PLANETS_DATA[pId].name}
-                            </span>
-                          ))}
-                        </div>
-                        {occupants.map((pId) => (
-                          <p key={pId} className="text-stone-700 text-[11.5px] leading-relaxed">
-                            <strong>{PLANETS_DATA[pId].name} in {getOrdinal(hNum)} House:</strong> {PLANETS_DATA[pId].effects[hNum].summary}
-                          </p>
-                        ))}
-                      </div>
-                    ) : (
-                      <div className="text-stone-500 italic text-[11px] py-1">
-                        Empty House. Influenced by natural ruler ({h.naturalLord}) and planetary aspects. {h.keySignifications.slice(0, 2).join(', ')}.
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Astrological Remedies & Karmic Guidance */}
-          <div className="space-y-3 pt-2">
-            <div className="border-b border-stone-300 pb-2">
-              <h3 className="text-sm font-bold uppercase tracking-wider text-stone-900 font-vedic flex items-center gap-1.5">
-                <ShieldCheck className="w-4 h-4 text-amber-700" />
-                Vedic Remedies, Gemstones & Spiritual Harmonization
-              </h3>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
-              <div className="p-3 rounded-xl border border-stone-200 bg-amber-50/50 space-y-1.5">
-                <h4 className="font-bold text-amber-950 flex items-center gap-1 font-vedic">
-                  <Sparkles className="w-3.5 h-3.5 text-amber-700" />
-                  Gemstone & Metal Guidance
-                </h4>
-                <p className="text-[11px] text-stone-600 leading-relaxed">
-                  Strengthen your Lagna Lord and Trikona benefics (Sun: Ruby in Copper, Jupiter: Yellow Sapphire in Gold, Moon: Pearl in Silver).
-                </p>
-              </div>
-
-              <div className="p-3 rounded-xl border border-stone-200 bg-emerald-50/50 space-y-1.5">
-                <h4 className="font-bold text-emerald-950 flex items-center gap-1 font-vedic">
-                  <Heart className="w-3.5 h-3.5 text-emerald-700" />
-                  Mantra Sadhana & Japa
-                </h4>
-                <p className="text-[11px] text-stone-600 leading-relaxed">
-                  Recite the Gayatri Mantra at sunrise, and chant the Navagraha Beej Mantras on respective planetary weekdays for peace and clarity.
-                </p>
-              </div>
-
-              <div className="p-3 rounded-xl border border-stone-200 bg-blue-50/50 space-y-1.5">
-                <h4 className="font-bold text-blue-950 flex items-center gap-1 font-vedic">
-                  <Zap className="w-3.5 h-3.5 text-blue-700" />
-                  Karmic Charity (Dana)
-                </h4>
-                <p className="text-[11px] text-stone-600 leading-relaxed">
-                  Feed birds on Saturdays for Saturn/Rahu pacification, support teachers and scholars on Thursdays for Jupiter, and offer water to the Sun.
-                </p>
-              </div>
-            </div>
-          </div>
-
-          {/* Report Footer & Attribution */}
-          <div className="pt-4 border-t-2 border-stone-800 flex flex-col sm:flex-row items-center justify-between text-[11px] text-stone-500 gap-2">
-            <span>goodastrology • Vedic Astrology Kundli Janam Patrika</span>
-            <span className="font-semibold text-stone-700">Developed by Himaghna Medhi</span>
-          </div>
-
         </div>
 
       </div>

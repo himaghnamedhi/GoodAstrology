@@ -145,7 +145,7 @@ export const NAVARATNA_DATA: Record<string, GemstoneInfo> = {
       'Chant the Surya Beej Mantra 108 times facing East before wearing on Sunday sunrise.'
     ],
     vedicLore: 'According to the Garuda Purana, Ruby originated from drops of the divine blood of demon king Vala, sanctified by the Sun god Surya Deva.',
-    vedastroPrinciple: 'VedAstro validates Ruby as the ultimate catalyst for Solar prana. It stimulates the Pingala nadi and restores sovereign confidence in the native.'
+    vedastroPrinciple: 'Classical Jyotish validates Ruby as the ultimate catalyst for Solar prana. It stimulates the Pingala nadi and restores sovereign confidence in the native.'
   },
 
   pearl: {
@@ -194,7 +194,7 @@ export const NAVARATNA_DATA: Record<string, GemstoneInfo> = {
       'Chant Chandra Beej Mantra 108 times facing North-West before wearing on Monday.'
     ],
     vedicLore: 'Garuda Purana states that pristine pearls manifested from the sacred teeth of the cosmic being, blessed by Soma (Chandra).',
-    vedastroPrinciple: 'VedAstro models Moon as the mirror of Manas (the subconscious mind). Natural Pearl aligns lunar cycles and stabilizes emotional resonance.'
+    vedastroPrinciple: 'Classical Jyotish models Moon as the mirror of Manas (the subconscious mind). Natural Pearl aligns lunar cycles and stabilizes emotional resonance.'
   },
 
   red_coral: {
@@ -243,7 +243,7 @@ export const NAVARATNA_DATA: Record<string, GemstoneInfo> = {
       'Chant Mangal Beej Mantra 108 times facing South before wearing on Tuesday.'
     ],
     vedicLore: 'Born from the vibrant blood marrow of the cosmic celestial body, blessed by Lord Kartikeya (Murugan) and Hanuman.',
-    vedastroPrinciple: 'VedAstro highlights Mars as dynamic execution force. Red Coral infuses primal drive while grounding erratic anxiety into disciplined action.'
+    vedastroPrinciple: 'Classical Jyotish highlights Mars as dynamic execution force. Red Coral infuses primal drive while grounding erratic anxiety into disciplined action.'
   },
 
   emerald: {
@@ -292,7 +292,7 @@ export const NAVARATNA_DATA: Record<string, GemstoneInfo> = {
       'Chant Budha Beej Mantra 108 times facing North-East before wearing on Wednesday morning.'
     ],
     vedicLore: 'Formed from the luminous emerald bile of the cosmic being, blessed by Lord Vishnu and Budha Deva for supreme commerce.',
-    vedastroPrinciple: 'VedAstro models Mercury as the neural transmission protocol. Emerald fine-tunes cognitive synapse speed and articulate vocal transmission.'
+    vedastroPrinciple: 'Classical Jyotish models Mercury as the neural transmission protocol. Emerald fine-tunes cognitive synapse speed and articulate vocal transmission.'
   },
 
   yellow_sapphire: {
@@ -341,7 +341,7 @@ export const NAVARATNA_DATA: Record<string, GemstoneInfo> = {
       'Chant Brihaspati Beej Mantra 108 times facing North-East before wearing on Thursday sunrise.'
     ],
     vedicLore: 'Manifested from the divine skin of the cosmic being, imbued with the limitless grace and supreme guidance of Brihaspati, guru of the Devas.',
-    vedastroPrinciple: 'VedAstro identifies Jupiter as the primary benefic amplifier of universal grace. Yellow Sapphire expands consciousness and aligns the native with Dharma.'
+    vedastroPrinciple: 'Classical Jyotish identifies Jupiter as the primary benefic amplifier of universal grace. Yellow Sapphire expands consciousness and aligns the native with Dharma.'
   },
 
   diamond: {
@@ -390,7 +390,7 @@ export const NAVARATNA_DATA: Record<string, GemstoneInfo> = {
       'Chant Shukra Beej Mantra 108 times facing South-East before wearing on Friday sunrise.'
     ],
     vedicLore: 'Emanated from the indestructible cosmic bones of the celestial being, blessed by Sage Shukracharya with immortal radiance.',
-    vedastroPrinciple: 'VedAstro models Venus as the harmonic vector of beauty and material fulfillment. Diamond refines sensual prana and manifests aesthetic abundance.'
+    vedastroPrinciple: 'Classical Jyotish models Venus as the harmonic vector of beauty and material fulfillment. Diamond refines sensual prana and manifests aesthetic abundance.'
   },
 
   blue_sapphire: {
@@ -441,7 +441,7 @@ export const NAVARATNA_DATA: Record<string, GemstoneInfo> = {
       'Chant Shani Beej Mantra 108 times facing West before wearing on Saturday twilight.'
     ],
     vedicLore: 'Born from the radiant cosmic eyes of the celestial being, governed by Lord Shani Deva—the cosmic dispenser of Karmic justice.',
-    vedastroPrinciple: 'VedAstro classifies Blue Sapphire as the highest-intensity quantum catalyst in Jyotish. It accelerates karmic resolution and imposes structural mastery.'
+    vedastroPrinciple: 'Classical Jyotish classifies Blue Sapphire as the highest-intensity quantum catalyst in Jyotish. It accelerates karmic resolution and imposes structural mastery.'
   },
 
   hessonite: {
@@ -490,7 +490,7 @@ export const NAVARATNA_DATA: Record<string, GemstoneInfo> = {
       'Chant Rahu Beej Mantra 108 times facing South-West after sunset before wearing.'
     ],
     vedicLore: 'Born from the divine head and essence of Svarbhanu (Rahu) during the cosmic churning of the Ocean of Milk (Samudra Manthan).',
-    vedastroPrinciple: 'VedAstro models Rahu as the boundary-breaking innovation vector. Hessonite filters toxic psychic interference and converts chaotic drive into strategic mastery.'
+    vedastroPrinciple: 'Classical Jyotish models Rahu as the boundary-breaking innovation vector. Hessonite filters toxic psychic interference and converts chaotic drive into strategic mastery.'
   },
 
   cats_eye: {
@@ -539,7 +539,7 @@ export const NAVARATNA_DATA: Record<string, GemstoneInfo> = {
       'Chant Ketu Beej Mantra 108 times facing North-West at twilight before wearing.'
     ],
     vedicLore: 'Born from the divine tail and spiritual torso of the cosmic dragon Ketu, the harbinger of Kaivalya (ultimate liberation).',
-    vedastroPrinciple: 'VedAstro analyzes Ketu as the laser-focused dissolution of material illusion. Cat’s Eye provides razor-sharp spiritual clarity and karmic immunity.'
+    vedastroPrinciple: 'Classical Jyotish analyzes Ketu as the laser-focused dissolution of material illusion. Cat’s Eye provides razor-sharp spiritual clarity and karmic immunity.'
   }
 };
 

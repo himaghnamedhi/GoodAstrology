@@ -4,13 +4,14 @@ import { Header } from './components/Header';
 import { KundliChart } from './components/KundliChart';
 import { KundliBuilder } from './components/KundliBuilder';
 import { GemstoneRecommender } from './components/GemstoneRecommender';
+import { MatchFinder } from './components/MatchFinder';
 import { SearchModal } from './components/SearchModal';
 import { CustomReportModal } from './components/CustomReportModal';
 import { HOUSES_DATA } from './data/housesData';
 import { Sparkles, Layers, ArrowUp } from 'lucide-react';
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState<'chart' | 'builder' | 'gemstones'>('chart');
+  const [activeTab, setActiveTab] = useState<'chart' | 'builder' | 'gemstones' | 'match'>('chart');
   const [selectedHouse, setSelectedHouse] = useState<HouseNumber>(1);
   const [selectedPlanet, setSelectedPlanet] = useState<PlanetId>('sun');
   const [chartStyle, setChartStyle] = useState<ChartStyle>('north');
@@ -31,6 +32,19 @@ export default function App() {
   // Modal states
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isReportOpen, setIsReportOpen] = useState(false);
+  const [reportType, setReportType] = useState<'kundli' | 'match' | 'gemstone'>('kundli');
+  const [reportMatchData, setReportMatchData] = useState<{ report?: any; p1?: any; p2?: any }>({});
+  const [reportGemstoneData, setReportGemstoneData] = useState<{ lagna?: number; profile?: any; name?: string }>({});
+
+  const handleOpenReport = (type: 'kundli' | 'match' | 'gemstone' = 'kundli', data?: any) => {
+    setReportType(type);
+    if (type === 'match' && data) {
+      setReportMatchData(data);
+    } else if (type === 'gemstone' && data) {
+      setReportGemstoneData(data);
+    }
+    setIsReportOpen(true);
+  };
 
   // Group placements by house number for the chart renderer
   const houseOccupants: Record<HouseNumber, PlanetId[]> = React.useMemo(() => {
@@ -81,7 +95,7 @@ export default function App() {
               setChartStyle={setChartStyle}
               customPlacements={houseOccupants}
               onInspectPlanet={handlePlanetSelect}
-              onOpenReport={() => setIsReportOpen(true)}
+              onOpenReport={() => handleOpenReport('kundli')}
             />
 
             {/* Quick 12 Houses Grid Shortcut Section */}
@@ -154,7 +168,7 @@ export default function App() {
               setActiveTab('chart');
             }}
             onSelectPlanet={handlePlanetSelect}
-            onOpenReport={() => setIsReportOpen(true)}
+            onOpenReport={() => handleOpenReport('kundli')}
           />
         )}
 
@@ -162,6 +176,14 @@ export default function App() {
           <GemstoneRecommender
             initialLagna={1}
             onNavigateToTab={(tab) => setActiveTab(tab)}
+            onOpenCustomReport={(data) => handleOpenReport('gemstone', data)}
+          />
+        )}
+
+        {activeTab === 'match' && (
+          <MatchFinder
+            onNavigateToTab={(tab) => setActiveTab(tab)}
+            onOpenCustomReport={(data) => handleOpenReport('match', data)}
           />
         )}
 
@@ -180,7 +202,7 @@ export default function App() {
                 <span className="text-xl font-bold font-vedic text-white">GoodAstrology</span>
               </div>
               <p className="text-xs text-stone-400 leading-relaxed">
-                Authentic, accessible Vedic astrology knowledge base. Interactive Kundli house chart reader, 9 Navagrahas in 12 houses reference posters, and astrological gemstone remedies.
+                Authentic, accessible Vedic astrology knowledge base. Interactive Kundli house chart reader, 9 Navagrahas in 12 houses reference posters, astrological gemstone remedies, and Kundali Milan match finder.
               </p>
             </div>
 
@@ -190,30 +212,44 @@ export default function App() {
               <ul className="space-y-2 text-xs text-stone-400">
                 <li>
                   <button
-                    onClick={() => setActiveTab('builder')}
-                    className="text-stone-200 hover:text-amber-400 font-medium flex items-center gap-1.5 transition-colors group"
+                    onClick={() => {
+                      setActiveTab('builder');
+                      scrollToTop();
+                    }}
+                    className="text-stone-200 hover:text-amber-400 font-medium flex items-center gap-1.5 transition-colors group cursor-pointer"
                   >
-                    <span className="text-amber-400 group-hover:translate-x-0.5 transition-transform">→</span>
+                    <span className="text-amber-400 group-hover:translate-x-0.5 transition-transform">1.</span>
                     <span>Kundli Reader</span>
                   </button>
                 </li>
                 <li>
                   <button
-                    onClick={() => setActiveTab('gemstones')}
-                    className="text-stone-200 hover:text-amber-400 font-medium flex items-center gap-1.5 transition-colors group"
+                    onClick={() => {
+                      setActiveTab('gemstones');
+                      scrollToTop();
+                    }}
+                    className="text-stone-200 hover:text-amber-400 font-medium flex items-center gap-1.5 transition-colors group cursor-pointer"
                   >
-                    <span className="text-amber-400 group-hover:translate-x-0.5 transition-transform">→</span>
-                    <span>Vedic Gemstone Recommender</span>
+                    <span className="text-amber-400 group-hover:translate-x-0.5 transition-transform">2.</span>
+                    <span>Find Gemstone You Need</span>
+                  </button>
+                </li>
+                <li>
+                  <button
+                    onClick={() => {
+                      setActiveTab('match');
+                      scrollToTop();
+                    }}
+                    className="text-stone-200 hover:text-amber-400 font-medium flex items-center gap-1.5 transition-colors group cursor-pointer"
+                  >
+                    <span className="text-amber-400 group-hover:translate-x-0.5 transition-transform">3.</span>
+                    <span className="font-semibold text-amber-200">Match Finder</span>
+                    <span className="text-[9px] px-1.5 py-0.2 rounded bg-amber-900/80 text-amber-200 border border-amber-500/40 font-bold">New</span>
                   </button>
                 </li>
                 <li className="flex items-center gap-1.5 text-stone-500 cursor-not-allowed">
                   <span>•</span>
                   <span>Dasha & Antardasha Calculator</span>
-                  <span className="text-[9.5px] px-1.5 py-0.2 rounded bg-stone-800 text-stone-400 border border-stone-700 font-medium">Coming Soon</span>
-                </li>
-                <li className="flex items-center gap-1.5 text-stone-500 cursor-not-allowed">
-                  <span>•</span>
-                  <span>Kundli Matching & Guna Milan</span>
                   <span className="text-[9.5px] px-1.5 py-0.2 rounded bg-stone-800 text-stone-400 border border-stone-700 font-medium">Coming Soon</span>
                 </li>
                 <li className="flex items-center gap-1.5 text-stone-500 cursor-not-allowed">
@@ -268,12 +304,19 @@ export default function App() {
         }}
       />
 
-      {/* Printable Custom Kundli Report Modal */}
+      {/* Printable Custom Vedic Report Modal */}
       <CustomReportModal
         isOpen={isReportOpen}
         onClose={() => setIsReportOpen(false)}
+        initialReportType={reportType}
         placements={customPlacements}
         chartStyle={chartStyle}
+        initialMatchReport={reportMatchData.report}
+        initialP1Details={reportMatchData.p1}
+        initialP2Details={reportMatchData.p2}
+        initialGemstoneLagna={reportGemstoneData.lagna}
+        initialGemstoneProfile={reportGemstoneData.profile}
+        initialGemstoneNativeName={reportGemstoneData.name}
       />
 
     </div>
