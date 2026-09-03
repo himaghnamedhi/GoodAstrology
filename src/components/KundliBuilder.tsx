@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { HouseNumber, PlanetId } from '../types/astrology';
 import { PLANETS_DATA } from '../data/planetsData';
 import { HOUSES_DATA } from '../data/housesData';
-import { Sparkles, RefreshCw, Award, BookOpen, Printer, CheckCircle2, Compass, FileText } from 'lucide-react';
+import { RefreshCw, BookOpen, FileDown, CheckCircle2, Compass } from 'lucide-react';
 
 interface KundliBuilderProps {
   placements: Record<PlanetId, HouseNumber>;
@@ -82,14 +82,8 @@ export const KundliBuilder: React.FC<KundliBuilderProps> = ({
   onSelectPlanet,
   onOpenReport,
 }) => {
-  const [selectedPreset, setSelectedPreset] = useState<string>('');
-
-  const handlePresetSelect = (presetName: string) => {
-    const preset = KUNDLI_PRESETS.find(p => p.name === presetName);
-    if (preset) {
-      setPlacements(preset.placements);
-      setSelectedPreset(presetName);
-    }
+  const handleResetPlacements = () => {
+    setPlacements(KUNDLI_PRESETS[0].placements);
   };
 
   const handleHouseChange = (planetId: PlanetId, newHouse: HouseNumber) => {
@@ -97,7 +91,6 @@ export const KundliBuilder: React.FC<KundliBuilderProps> = ({
       ...prev,
       [planetId]: newHouse,
     }));
-    setSelectedPreset('');
   };
 
   const getOrdinal = (n: number) => {
@@ -108,167 +101,114 @@ export const KundliBuilder: React.FC<KundliBuilderProps> = ({
 
   return (
     <div className="space-y-6">
-      {/* Top Controls & Presets */}
-      <div className="bg-white p-5 sm:p-6 rounded-2xl border border-amber-900/10 shadow-xs space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      {/* 9 Planet House Placement Selectors */}
+      <div className="bg-white p-5 sm:p-7 rounded-3xl border border-amber-900/15 shadow-sm space-y-5">
+        {/* Section Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-stone-100">
           <div>
-            <h2 className="text-xl font-bold text-amber-950 font-vedic flex items-center gap-2">
-              <Sparkles className="w-5 h-5 text-amber-700" />
-              Kundli Reader & Custom Placement Builder
-            </h2>
-            <p className="text-xs text-stone-600 mt-0.5">
-              Set the house position (1 to 12) for each of the 9 Navagrahas, or load classical Raja Yoga chart templates.
+            <div className="flex items-center gap-2 flex-wrap mb-1">
+              <h3 className="text-base sm:text-lg font-bold text-amber-950 font-vedic flex items-center gap-2">
+                <Compass className="w-5 h-5 text-amber-700" />
+                Assign House Position for Each Planet (नवग्रह भाव स्थिति)
+              </h3>
+              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 text-[11px] font-semibold">
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                All 9 Navagrahas Configured
+              </span>
+            </div>
+            <p className="text-xs text-stone-600">
+              Customize planet placements to reflect any birth chart, inspect house effects, or generate a tailored Janam Patrika.
             </p>
           </div>
 
-          <div className="flex items-center gap-2 self-start sm:self-auto">
+          <div className="flex items-center gap-2.5 shrink-0 self-start sm:self-auto">
+            <button
+              onClick={handleResetPlacements}
+              className="px-3 py-1.5 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-700 border border-stone-300 text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
+              title="Reset to natural placements"
+            >
+              <RefreshCw className="w-3.5 h-3.5 text-stone-500" />
+              Reset Placements
+            </button>
+
             {onOpenReport && (
               <button
-                id="btn-builder-print-report"
+                id="btn-generate-kundli-pdf"
                 onClick={onOpenReport}
-                className="px-4 py-2 rounded-xl bg-amber-900 hover:bg-amber-950 text-amber-50 shadow-xs text-xs font-bold flex items-center gap-2 transition-all active:scale-95"
+                className="px-4 py-1.5 rounded-xl bg-gradient-to-r from-amber-800 to-amber-950 hover:from-amber-700 hover:to-amber-900 text-amber-50 shadow-xs text-xs font-bold flex items-center gap-2 transition-all active:scale-95 cursor-pointer border border-amber-700/50"
+                title="Generate & Download PDF Horoscope Report"
               >
-                <Printer className="w-4 h-4 text-amber-300" />
-                <span>Print Custom Report</span>
+                <FileDown className="w-4 h-4 text-amber-300" />
+                <span>Generate PDF</span>
               </button>
             )}
-
-            <button
-              onClick={() => handlePresetSelect(KUNDLI_PRESETS[0].name)}
-              className="px-3 py-2 rounded-xl bg-amber-100/80 hover:bg-amber-200 text-amber-900 border border-amber-300 text-xs font-semibold flex items-center gap-1.5"
-            >
-              <RefreshCw className="w-3.5 h-3.5" />
-              Reset
-            </button>
           </div>
         </div>
 
-        {/* Preset Yogas */}
-        <div className="space-y-2">
-          <span className="text-xs font-bold text-amber-950 uppercase tracking-wider">
-            Popular Astrological Presets & Yogas:
-          </span>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
-            {KUNDLI_PRESETS.map((p) => (
-              <button
-                key={p.name}
-                onClick={() => handlePresetSelect(p.name)}
-                className={`p-3 rounded-xl text-left border transition-all ${
-                  selectedPreset === p.name
-                    ? 'bg-amber-950 text-amber-50 border-amber-950 shadow-sm'
-                    : 'bg-stone-50 hover:bg-amber-50 text-stone-800 border-stone-200'
-                }`}
-              >
-                <div className="flex items-center gap-1.5">
-                  <Award className={`w-3.5 h-3.5 ${selectedPreset === p.name ? 'text-amber-300' : 'text-amber-700'}`} />
-                  <span className="text-xs font-bold font-vedic truncate">{p.name}</span>
-                </div>
-                <p className={`text-[10.5px] line-clamp-2 mt-1 ${selectedPreset === p.name ? 'text-amber-200' : 'text-stone-500'}`}>
-                  {p.desc}
-                </p>
-              </button>
-            ))}
-          </div>
-        </div>
-      </div>
+          {/* 9 Planet House Placement Selectors Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3.5">
+            {(Object.keys(PLANETS_DATA) as PlanetId[]).map((pId) => {
+              const p = PLANETS_DATA[pId];
+              const currentHouse = placements[pId] || 1;
+              const effect = p.effects[currentHouse];
 
-      {/* 9 Planet House Placement Selectors */}
-      <div className="bg-white p-5 sm:p-6 rounded-3xl border border-amber-900/15 shadow-sm space-y-4">
-        <h3 className="text-base font-bold text-amber-950 font-vedic flex items-center gap-2">
-          <Compass className="w-4 h-4 text-amber-700" />
-          Assign House Position for Each Planet:
-        </h3>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3.5">
-          {(Object.keys(PLANETS_DATA) as PlanetId[]).map((pId) => {
-            const p = PLANETS_DATA[pId];
-            const currentHouse = placements[pId] || 1;
-            const effect = p.effects[currentHouse];
-
-            return (
-              <div
-                key={pId}
-                className="bg-stone-50 p-3.5 rounded-xl border border-stone-200 hover:border-amber-700 transition-all flex flex-col justify-between"
-              >
-                <div>
-                  {/* Header */}
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center gap-2">
-                      <span className="text-lg">{p.avatar}</span>
-                      <div>
-                        <span className="text-xs font-bold text-amber-950 block leading-tight">{p.name}</span>
-                        <span className="text-[10px] text-stone-500">{p.sanskritName}</span>
+              return (
+                <div
+                  key={pId}
+                  className="bg-stone-50 p-3.5 rounded-xl border border-stone-200 hover:border-amber-700 transition-all flex flex-col justify-between"
+                >
+                  <div>
+                    {/* Header */}
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-2">
+                        <span className="text-lg">{p.avatar}</span>
+                        <div>
+                          <span className="text-xs font-bold text-amber-950 block leading-tight">{p.name}</span>
+                          <span className="text-[10px] text-stone-500">{p.sanskritName}</span>
+                        </div>
                       </div>
+
+                      {/* House Select Dropdown */}
+                      <select
+                        id={`select-house-${pId}`}
+                        value={currentHouse}
+                        onChange={(e) => handleHouseChange(pId, Number(e.target.value) as HouseNumber)}
+                        aria-label={`${p.name} house selection`}
+                        className="text-xs font-bold text-amber-950 bg-white border border-stone-300 rounded-lg px-2 py-1 focus:ring-1 focus:ring-amber-800 cursor-pointer"
+                      >
+                        {([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12] as HouseNumber[]).map((num) => (
+                          <option key={num} value={num}>
+                            {getOrdinal(num)} House ({HOUSES_DATA[num].sanskritName.split(' ')[0]})
+                          </option>
+                        ))}
+                      </select>
                     </div>
 
-                    {/* House Select Dropdown */}
-                    <select
-                      id={`select-house-${pId}`}
-                      value={currentHouse}
-                      onChange={(e) => handleHouseChange(pId, Number(e.target.value) as HouseNumber)}
-                      aria-label={`${p.name} house selection`}
-                      className="text-xs font-bold text-amber-950 bg-white border border-stone-300 rounded-lg px-2 py-1 focus:ring-1 focus:ring-amber-800"
-                    >
-                      {([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12] as HouseNumber[]).map((num) => (
-                        <option key={num} value={num}>
-                          {getOrdinal(num)} House ({HOUSES_DATA[num].sanskritName.split(' ')[0]})
-                        </option>
-                      ))}
-                    </select>
+                    {/* Active Effect Snippet */}
+                    <p className="text-xs text-stone-700 bg-white p-2 rounded-lg border border-stone-200/60 line-clamp-2">
+                      {effect.bulletPoints[0]}
+                    </p>
                   </div>
 
-                  {/* Active Effect Snippet */}
-                  <p className="text-xs text-stone-700 bg-white p-2 rounded-lg border border-stone-200/60 line-clamp-2">
-                    {effect.bulletPoints[0]}
-                  </p>
+                  <div className="mt-2 pt-1.5 border-t border-stone-200/60 flex items-center justify-between text-[11px]">
+                    <button
+                      onClick={() => onSelectPlanet(pId)}
+                      className="text-amber-800 hover:underline font-medium cursor-pointer"
+                    >
+                      View {p.name} &rarr;
+                    </button>
+                    <button
+                      onClick={() => onSelectHouse(currentHouse)}
+                      className="text-stone-500 hover:text-stone-800 cursor-pointer"
+                    >
+                      Inspect {getOrdinal(currentHouse)} House
+                    </button>
+                  </div>
                 </div>
-
-                <div className="mt-2 pt-1.5 border-t border-stone-200/60 flex items-center justify-between text-[11px]">
-                  <button
-                    onClick={() => onSelectPlanet(pId)}
-                    className="text-amber-800 hover:underline font-medium"
-                  >
-                    View {p.name} &rarr;
-                  </button>
-                  <button
-                    onClick={() => onSelectHouse(currentHouse)}
-                    className="text-stone-500 hover:text-stone-800"
-                  >
-                    Inspect {getOrdinal(currentHouse)} House
-                  </button>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* Printable Horoscope Report Callout Banner */}
-      {onOpenReport && (
-        <div className="bg-gradient-to-r from-amber-900 via-amber-950 to-stone-900 text-amber-50 p-6 sm:p-7 rounded-3xl shadow-lg border border-amber-800/40 flex flex-col md:flex-row items-center justify-between gap-5">
-          <div className="space-y-1.5 text-center md:text-left">
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-800/60 border border-amber-600/40 text-amber-200 text-xs font-semibold">
-              <CheckCircle2 className="w-3.5 h-3.5 text-amber-300" />
-              <span>All 9 Navagrahas Assigned (100% Configured)</span>
-            </div>
-            <h3 className="text-xl sm:text-2xl font-bold font-vedic text-white">
-              Your Customized Kundli Horoscope Report is Ready
-            </h3>
-            <p className="text-xs text-amber-200/80 max-w-xl leading-relaxed">
-              Generate a complete, printable Vedic Janam Patrika with your custom visual chart, 12 Bhavas breakdown, detected classical Yogas, and karmic remedies.
-            </p>
+              );
+            })}
           </div>
-
-          <button
-            id="btn-print-kundli-full-report"
-            onClick={onOpenReport}
-            className="px-6 py-3 rounded-2xl bg-amber-400 hover:bg-amber-300 text-amber-950 font-bold text-sm flex items-center gap-2.5 shadow-md hover:shadow-lg transition-all active:scale-95 shrink-0"
-          >
-            <Printer className="w-4 h-4 text-amber-950" />
-            <span>Generate & Print Report</span>
-          </button>
-        </div>
-      )}
+      </div>
 
       {/* Generated Kundli Synthesis & Reading */}
       <div className="bg-[#FAF8F5] p-5 sm:p-7 rounded-3xl border border-amber-900/15 shadow-sm space-y-4">

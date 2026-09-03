@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { 
   Sparkles, 
   ShieldAlert, 
@@ -19,6 +19,7 @@ import {
   Wind,
   Mountain,
   ChevronRight,
+  ChevronLeft,
   Calendar,
   Clock,
   MapPin,
@@ -61,6 +62,42 @@ export const GemstoneRecommender: React.FC<GemstoneRecommenderProps> = ({
   const [activeSubTab, setActiveSubTab] = useState<'birth_calc' | 'lagna' | 'goals' | 'synergy' | 'directory' | 'calculator'>('birth_calc');
   const [selectedLagna, setSelectedLagna] = useState<number>(initialLagna);
   const [selectedGemId, setSelectedGemId] = useState<string | null>(null);
+
+  // Feature Sub-Navigation Tabs Slider Ref & Scrolling States
+  const tabsSliderRef = useRef<HTMLDivElement>(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(true);
+
+  const checkScroll = () => {
+    if (tabsSliderRef.current) {
+      const { scrollLeft, scrollWidth, clientWidth } = tabsSliderRef.current;
+      setCanScrollLeft(scrollLeft > 4);
+      setCanScrollRight(scrollLeft < scrollWidth - clientWidth - 4);
+    }
+  };
+
+  useEffect(() => {
+    checkScroll();
+    const el = tabsSliderRef.current;
+    if (el) {
+      el.addEventListener('scroll', checkScroll, { passive: true });
+      window.addEventListener('resize', checkScroll);
+      return () => {
+        el.removeEventListener('scroll', checkScroll);
+        window.removeEventListener('resize', checkScroll);
+      };
+    }
+  }, []);
+
+  const slideTabs = (direction: 'left' | 'right') => {
+    if (tabsSliderRef.current) {
+      const scrollAmount = 240;
+      tabsSliderRef.current.scrollBy({
+        left: direction === 'left' ? -scrollAmount : scrollAmount,
+        behavior: 'smooth',
+      });
+    }
+  };
   
   // Birth Details State
   const [birthDetails, setBirthDetails] = useState<BirthDetails>({
@@ -256,33 +293,100 @@ export const GemstoneRecommender: React.FC<GemstoneRecommenderProps> = ({
           </div>
         </div>
 
-        {/* Feature Sub-Navigation Tabs */}
-        <div className="mt-8 pt-6 border-t border-amber-900/10 flex overflow-x-auto gap-2 no-scrollbar">
-          {[
-            { id: 'birth_calc', label: 'Recommendation by Name, DOB & Place', icon: Compass },
-            { id: 'lagna', label: 'By Ascendant (Lagna)', icon: Crown },
-            { id: 'goals', label: 'By Life Goals & Needs', icon: Heart },
-            { id: 'synergy', label: 'Synergy & Conflict Matrix', icon: ShieldAlert },
-            { id: 'directory', label: '9 Navaratnas Encyclopedia', icon: Sparkles },
-            { id: 'calculator', label: 'Ratti & Metal Calculator', icon: Scale },
-          ].map((tab) => {
-            const Icon = tab.icon;
-            const isActive = activeSubTab === tab.id;
-            return (
+        {/* Feature Sub-Navigation Tabs Slider */}
+        <div className="mt-8 pt-6 border-t border-amber-900/10">
+          {/* Header Bar with Slide Indicator Animation and Controls */}
+          <div className="flex items-center justify-between gap-2 mb-2 px-0.5">
+            <div className="flex items-center gap-2 text-xs font-semibold text-amber-950">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-500 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-600"></span>
+              </span>
+              <span className="font-vedic tracking-wide uppercase text-[11px] text-amber-900">
+                Prescription Modes
+              </span>
+              <span className="text-[11px] font-medium text-stone-500 flex items-center gap-1">
+                (Slide to explore <span className="inline-block animate-slider-arrow text-amber-800 font-bold">&rarr;</span>)
+              </span>
+            </div>
+
+            {/* Slider Navigation Arrows */}
+            <div className="flex items-center gap-1.5">
               <button
-                key={tab.id}
-                onClick={() => setActiveSubTab(tab.id as any)}
-                className={`whitespace-nowrap px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold flex items-center gap-2 transition-all cursor-pointer ${
-                  isActive
-                    ? 'bg-amber-900 text-amber-50 shadow-xs'
-                    : 'bg-white/80 hover:bg-white text-stone-700 border border-amber-900/10'
+                type="button"
+                onClick={() => slideTabs('left')}
+                disabled={!canScrollLeft}
+                aria-label="Slide left"
+                className={`p-1.5 rounded-lg border transition-all ${
+                  canScrollLeft
+                    ? 'bg-white text-stone-800 border-amber-900/20 hover:bg-amber-100/70 shadow-2xs active:scale-95 cursor-pointer'
+                    : 'bg-white/40 text-stone-400 border-transparent cursor-not-allowed opacity-40'
                 }`}
+                title="Slide left"
               >
-                <Icon className="w-4 h-4" />
-                <span>{tab.label}</span>
+                <ChevronLeft className="w-4 h-4" />
               </button>
-            );
-          })}
+              <button
+                type="button"
+                onClick={() => slideTabs('right')}
+                disabled={!canScrollRight}
+                aria-label="Slide right"
+                className={`p-1.5 rounded-lg border transition-all ${
+                  canScrollRight
+                    ? 'bg-white text-stone-800 border-amber-900/20 hover:bg-amber-100/70 shadow-2xs active:scale-95 cursor-pointer'
+                    : 'bg-white/40 text-stone-400 border-transparent cursor-not-allowed opacity-40'
+                }`}
+                title="Slide right"
+              >
+                <ChevronRight className="w-4 h-4 animate-slider-arrow" />
+              </button>
+            </div>
+          </div>
+
+          {/* Slider Track: No scrollbar bar, smooth sliding, animated affordance */}
+          <div className="relative">
+            {/* Left Edge Gradient Fade */}
+            {canScrollLeft && (
+              <div className="absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-[#FAF5EE] to-transparent z-10 pointer-events-none transition-opacity duration-300" />
+            )}
+
+            {/* Sub-Navigation Slider Track */}
+            <div
+              ref={tabsSliderRef}
+              className="flex overflow-x-auto gap-2.5 scroll-smooth [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden no-scrollbar py-1"
+            >
+              {[
+                { id: 'birth_calc', label: 'Recommendation by Name, DOB & Place', icon: Compass },
+                { id: 'lagna', label: 'By Ascendant (Lagna)', icon: Crown },
+                { id: 'goals', label: 'By Life Goals & Needs', icon: Heart },
+                { id: 'synergy', label: 'Synergy & Conflict Matrix', icon: ShieldAlert },
+                { id: 'directory', label: '9 Navaratnas Encyclopedia', icon: Sparkles },
+                { id: 'calculator', label: 'Ratti & Metal Calculator', icon: Scale },
+              ].map((tab) => {
+                const Icon = tab.icon;
+                const isActive = activeSubTab === tab.id;
+                return (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveSubTab(tab.id as any)}
+                    className={`whitespace-nowrap px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold flex items-center gap-2 transition-all shrink-0 cursor-pointer ${
+                      isActive
+                        ? 'bg-amber-900 text-amber-50 shadow-xs ring-2 ring-amber-800/30 scale-[1.02]'
+                        : 'bg-white/85 hover:bg-white text-stone-700 border border-amber-900/10 hover:border-amber-900/25 hover:shadow-2xs'
+                    }`}
+                  >
+                    <Icon className="w-4 h-4" />
+                    <span>{tab.label}</span>
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Right Edge Gradient Fade */}
+            {canScrollRight && (
+              <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-[#ECE3D5] to-transparent z-10 pointer-events-none transition-opacity duration-300" />
+            )}
+          </div>
         </div>
       </div>
 

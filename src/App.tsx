@@ -97,65 +97,6 @@ export default function App() {
               onInspectPlanet={handlePlanetSelect}
               onOpenReport={() => handleOpenReport('kundli')}
             />
-
-            {/* Quick 12 Houses Grid Shortcut Section */}
-            <div className="bg-white rounded-3xl p-6 border border-amber-900/10 shadow-xs space-y-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="text-lg font-bold font-vedic text-amber-950 flex items-center gap-2">
-                    <Layers className="w-5 h-5 text-amber-700" />
-                    12 Houses of Vedic Kundli (द्वादश भाव संदर्भ)
-                  </h3>
-                  <p className="text-xs text-stone-600">
-                    Click any house card below to highlight its specific life significations, karakas, and planetary effects in the chart above.
-                  </p>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
-                {([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12] as HouseNumber[]).map((hNum) => {
-                  const h = HOUSES_DATA[hNum];
-                  const isSel = selectedHouse === hNum;
-                  return (
-                    <div
-                      key={hNum}
-                      onClick={() => handleHouseSelect(hNum)}
-                      className={`p-3 rounded-2xl border transition-all cursor-pointer flex flex-col justify-between ${
-                        isSel
-                          ? 'bg-amber-950 text-amber-50 border-amber-950 shadow-md ring-2 ring-amber-400/40'
-                          : 'bg-[#FAF8F5] hover:bg-amber-50 text-stone-800 border-stone-200'
-                      }`}
-                    >
-                      <div>
-                        <div className="flex items-center justify-between mb-1">
-                          <span className="text-xs font-bold font-vedic">{hNum}th House</span>
-                          <span className={`text-[10px] px-1.5 py-0.2 rounded font-semibold ${
-                            isSel ? 'bg-amber-800 text-amber-200' : 'bg-stone-200 text-stone-700'
-                          }`}>
-                            {h.svgRegion.split(' ')[0]}
-                          </span>
-                        </div>
-                        <h4 className={`text-xs font-bold font-vedic truncate ${isSel ? 'text-amber-200' : 'text-amber-950'}`}>
-                          {h.sanskritName}
-                        </h4>
-                        <p className={`text-[11px] line-clamp-2 mt-1 ${isSel ? 'text-amber-100/90' : 'text-stone-600'}`}>
-                          {h.keySignifications.slice(0, 2).join(', ')}
-                        </p>
-                      </div>
-
-                      <div className="mt-2 pt-1 border-t border-stone-200/50 flex justify-between items-center text-[10px]">
-                        <span className={isSel ? 'text-amber-300' : 'text-amber-800'}>
-                          {h.naturalSign.split(' ')[0]}
-                        </span>
-                        <span className={isSel ? 'text-amber-300' : 'text-stone-400'}>
-                          {h.classification.category}
-                        </span>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
           </div>
         )}
 
