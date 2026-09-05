@@ -401,10 +401,6 @@ export const GemstoneRecommender: React.FC<GemstoneRecommenderProps> = ({
           <div className="bg-white rounded-3xl border border-amber-900/15 p-6 sm:p-8 shadow-sm space-y-6">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-4 border-b border-stone-100">
               <div>
-                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-100/70 text-amber-900 text-xs font-semibold uppercase tracking-wider mb-2">
-                  <Sparkles className="w-3.5 h-3.5 text-amber-700" />
-                  <span>Vedic Kundali &amp; Ratna Shastra Engine</span>
-                </div>
                 <h2 className="text-xl sm:text-2xl font-bold text-amber-950 font-vedic">
                   Free Gemstone Calculator by Date of Birth &amp; Kundali
                 </h2>
@@ -427,7 +423,7 @@ export const GemstoneRecommender: React.FC<GemstoneRecommenderProps> = ({
                   value={birthDetails.name}
                   onChange={(e) => setBirthDetails(prev => ({ ...prev, name: e.target.value }))}
                   placeholder="Enter Your Name"
-                  className="w-full p-3 rounded-xl border border-stone-300 bg-stone-50 font-medium text-sm text-stone-900 placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-amber-500 shadow-2xs"
+                  className="w-full h-[46px] px-3 rounded-xl border border-stone-300 bg-stone-50 font-medium text-sm text-stone-900 placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-amber-500 shadow-2xs"
                 />
               </div>
 
@@ -440,32 +436,64 @@ export const GemstoneRecommender: React.FC<GemstoneRecommenderProps> = ({
                 <div className="grid grid-cols-3 gap-2">
                   {(['male', 'female', 'other'] as const).map((g) => {
                     const isSelected = (birthDetails.gender || 'male') === g;
+                    const activeColor =
+                      g === 'male'
+                        ? 'bg-blue-600 text-white border-blue-600 shadow-xs'
+                        : g === 'female'
+                        ? 'bg-pink-600 text-white border-pink-600 shadow-xs'
+                        : 'bg-stone-800 text-white border-stone-800 shadow-xs';
+                    const hoverColor =
+                      g === 'male'
+                        ? 'hover:bg-blue-50 hover:text-blue-700 hover:border-blue-300'
+                        : g === 'female'
+                        ? 'hover:bg-pink-50 hover:text-pink-700 hover:border-pink-300'
+                        : 'hover:bg-stone-100 hover:text-stone-800 hover:border-stone-400';
+
                     return (
                       <button
                         key={g}
                         type="button"
                         onClick={() => setBirthDetails(prev => ({ ...prev, gender: g }))}
-                        className={`py-2.5 px-3 rounded-xl text-xs font-bold capitalize transition-all cursor-pointer border ${
+                        className={`h-[46px] px-3 rounded-xl text-sm font-bold capitalize transition-all cursor-pointer border flex items-center justify-center gap-1.5 ${
                           isSelected
-                            ? 'bg-amber-900 text-amber-50 border-amber-900 shadow-xs'
-                            : 'bg-stone-50 hover:bg-stone-100 text-stone-700 border-stone-300'
+                            ? activeColor
+                            : `bg-stone-50 text-stone-700 border-stone-300 ${hoverColor}`
                         }`}
                       >
-                        {g === 'other' ? 'Other' : g.charAt(0).toUpperCase() + g.slice(1)}
+                        {g === 'male' && <span className="text-base">♂</span>}
+                        {g === 'female' && <span className="text-base">♀</span>}
+                        <span>{g === 'other' ? 'Other' : g.charAt(0).toUpperCase() + g.slice(1)}</span>
                       </button>
                     );
                   })}
                 </div>
               </div>
 
-              {/* 3. Body weight (in kg): */}
+              {/* 3. Body weight: */}
               <div className="space-y-1.5">
-                <div className="flex items-center justify-between">
-                  <label className="text-xs font-bold uppercase tracking-wider text-stone-700 flex items-center gap-1.5 font-vedic">
-                    <Scale className="w-3.5 h-3.5 text-amber-800" />
-                    <span>Body weight (in {birthDetails.weightUnit || 'kg'}):</span>
-                  </label>
-                  <div className="flex items-center gap-1 bg-stone-100 p-0.5 rounded-lg border border-stone-200">
+                <label className="text-xs font-bold uppercase tracking-wider text-stone-700 flex items-center gap-1.5 font-vedic">
+                  <Scale className="w-3.5 h-3.5 text-amber-800" />
+                  <span>Body weight:</span>
+                </label>
+                <div className="relative">
+                  <input
+                    type="number"
+                    min="20"
+                    max="300"
+                    value={birthDetails.weightKg || ''}
+                    onChange={(e) => setBirthDetails(prev => ({ ...prev, weightKg: parseFloat(e.target.value) || 0 }))}
+                    placeholder="Enter Your Weight"
+                    className="w-full h-[46px] px-3 rounded-xl border border-stone-300 bg-stone-50 font-medium text-sm text-stone-900 placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-amber-500 shadow-2xs pr-14"
+                  />
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold text-amber-900 uppercase">
+                    {birthDetails.weightUnit || 'kg'}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between gap-2 pt-0.5">
+                  <span className="text-[11px] text-stone-500 leading-tight">
+                    ~1 Ratti per 10–12 kg weight
+                  </span>
+                  <div className="flex items-center gap-1 bg-stone-100 p-0.5 rounded-lg border border-stone-200 shrink-0">
                     <button
                       type="button"
                       onClick={() => {
@@ -475,7 +503,7 @@ export const GemstoneRecommender: React.FC<GemstoneRecommenderProps> = ({
                         }
                       }}
                       className={`px-2 py-0.5 rounded text-[10px] font-bold transition-colors cursor-pointer ${
-                        (birthDetails.weightUnit || 'kg') === 'kg' ? 'bg-amber-900 text-amber-50' : 'text-stone-600 hover:text-stone-900'
+                        (birthDetails.weightUnit || 'kg') === 'kg' ? 'bg-amber-900 text-amber-50 shadow-2xs' : 'text-stone-600 hover:text-stone-900'
                       }`}
                     >
                       KG
@@ -489,30 +517,13 @@ export const GemstoneRecommender: React.FC<GemstoneRecommenderProps> = ({
                         }
                       }}
                       className={`px-2 py-0.5 rounded text-[10px] font-bold transition-colors cursor-pointer ${
-                        birthDetails.weightUnit === 'lbs' ? 'bg-amber-900 text-amber-50' : 'text-stone-600 hover:text-stone-900'
+                        birthDetails.weightUnit === 'lbs' ? 'bg-amber-900 text-amber-50 shadow-2xs' : 'text-stone-600 hover:text-stone-900'
                       }`}
                     >
                       LBS
                     </button>
                   </div>
                 </div>
-                <div className="relative">
-                  <input
-                    type="number"
-                    min="20"
-                    max="300"
-                    value={birthDetails.weightKg || ''}
-                    onChange={(e) => setBirthDetails(prev => ({ ...prev, weightKg: parseFloat(e.target.value) || 0 }))}
-                    placeholder="Enter Your Weight"
-                    className="w-full p-3 rounded-xl border border-stone-300 bg-stone-50 font-medium text-sm text-stone-900 placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-amber-500 shadow-2xs pr-14"
-                  />
-                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold text-amber-900 uppercase">
-                    {birthDetails.weightUnit || 'kg'}
-                  </span>
-                </div>
-                <span className="text-[11px] text-stone-500 block leading-tight">
-                  Used directly to prescribe exact Ratti &amp; Carat gemstone size (~1 Ratti per 10–12 kg body weight).
-                </span>
               </div>
 
               {/* 4. Enter your birth date: */}

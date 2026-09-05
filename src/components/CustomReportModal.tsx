@@ -126,9 +126,9 @@ export const CustomReportModal: React.FC<CustomReportModalProps> = ({
     gender: 'male',
     dob: '1996-05-15',
     tob: '08:30',
-    city: 'Varanasi (Kashi)',
-    latitude: 25.3176,
-    longitude: 82.9739,
+    city: 'Nalbari, Assam',
+    latitude: 26.4449,
+    longitude: 91.4429,
     timezoneOffset: 5.5,
     weightKg: 68,
     weightUnit: 'kg',
@@ -139,9 +139,9 @@ export const CustomReportModal: React.FC<CustomReportModalProps> = ({
     gender: 'female',
     dob: '1998-08-20',
     tob: '14:15',
-    city: 'Guwahati, Assam',
-    latitude: 26.1445,
-    longitude: 91.7362,
+    city: 'Dibrugarh, Assam',
+    latitude: 27.4728,
+    longitude: 94.9120,
     timezoneOffset: 5.5,
     weightKg: 55,
     weightUnit: 'kg',
@@ -289,7 +289,7 @@ export const CustomReportModal: React.FC<CustomReportModalProps> = ({
   // Direct High-Resolution A4 PDF Generation using jsPDF + html2canvas
   const handleDownloadPDF = async () => {
     setIsExporting(true);
-    setExportProgress('Initializing High-Res PDF Engine...');
+    setExportProgress('Preparing High-Resolution PDF...');
 
     try {
       const reportContainer = document.getElementById('printable-report-area');

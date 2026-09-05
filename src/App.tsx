@@ -175,7 +175,7 @@ export default function App() {
                     className="text-stone-300 hover:text-amber-400 font-medium flex items-center gap-1.5 transition-colors group cursor-pointer"
                   >
                     <span className="text-amber-400 group-hover:translate-x-0.5 transition-transform">1.</span>
-                    <span>Kundali Generator</span>
+                    <span>Kundali Maker</span>
                   </button>
                 </li>
                 <li>

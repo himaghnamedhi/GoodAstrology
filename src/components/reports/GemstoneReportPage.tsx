@@ -303,7 +303,7 @@ export const GemstoneReportPage: React.FC<GemstoneReportPageProps> = ({
         {/* Page Footer */}
         <div className="pt-2 border-t border-amber-900/30 flex items-center justify-between text-[9.5px] text-stone-500">
           <span>goodastrology • Vedic Gemstone Prescription &amp; Ratna Chikitsa</span>
-          <span className="font-semibold text-stone-700">Himaghna Medhi • Jyotish Calculation Engine</span>
+          <span className="font-semibold text-stone-700">Himaghna Medhi • Vedic Jyotish Calculations</span>
           <span className="font-bold text-amber-950">Page 1 of 1</span>
         </div>
       </div>

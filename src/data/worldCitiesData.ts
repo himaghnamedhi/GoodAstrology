@@ -1,10 +1,10 @@
-import { CityPreset } from './vedicAstrologyCalculator';
+import { CityPreset, POPULAR_CITIES } from './vedicAstrologyCalculator';
 
 export interface WorldCity extends CityPreset {
   continent?: string;
 }
 
-export const WORLD_CITIES: WorldCity[] = [
+export const GLOBAL_INTERNATIONAL_CITIES: WorldCity[] = [
   // ==========================================
   // NORTH AMERICA - UNITED STATES
   // ==========================================
@@ -218,73 +218,46 @@ export const WORLD_CITIES: WorldCity[] = [
   { name: 'Sylhet', stateOrRegion: 'Sylhet', country: 'Bangladesh', lat: 24.8949, lng: 91.8687, timezone: 6, continent: 'Asia' },
   { name: 'Thimphu', stateOrRegion: 'Thimphu', country: 'Bhutan', lat: 27.4728, lng: 89.6393, timezone: 6, continent: 'Asia' },
   { name: 'Male', stateOrRegion: 'Kaafu', country: 'Maldives', lat: 4.1755, lng: 73.5093, timezone: 5, continent: 'Asia' },
+];
 
-  // --- INDIA: Key Metro & Cultural Centres ---
-  { name: 'New Delhi', stateOrRegion: 'Delhi NCR', country: 'India', lat: 28.6139, lng: 77.2090, timezone: 5.5, continent: 'Asia' },
-  { name: 'Mumbai', stateOrRegion: 'Maharashtra', country: 'India', lat: 19.0760, lng: 72.8777, timezone: 5.5, continent: 'Asia' },
-  { name: 'Bengaluru (Bangalore)', stateOrRegion: 'Karnataka', country: 'India', lat: 12.9716, lng: 77.5946, timezone: 5.5, continent: 'Asia' },
-  { name: 'Hyderabad', stateOrRegion: 'Telangana', country: 'India', lat: 17.3850, lng: 78.4867, timezone: 5.5, continent: 'Asia' },
-  { name: 'Chennai (Madras)', stateOrRegion: 'Tamil Nadu', country: 'India', lat: 13.0827, lng: 80.2707, timezone: 5.5, continent: 'Asia' },
-  { name: 'Kolkata (Calcutta)', stateOrRegion: 'West Bengal', country: 'India', lat: 22.5726, lng: 88.3639, timezone: 5.5, continent: 'Asia' },
-  { name: 'Ahmedabad', stateOrRegion: 'Gujarat', country: 'India', lat: 23.0225, lng: 72.5714, timezone: 5.5, continent: 'Asia' },
-  { name: 'Pune', stateOrRegion: 'Maharashtra', country: 'India', lat: 18.5204, lng: 73.8567, timezone: 5.5, continent: 'Asia' },
-  { name: 'Jaipur', stateOrRegion: 'Rajasthan', country: 'India', lat: 26.9124, lng: 75.7873, timezone: 5.5, continent: 'Asia' },
-  { name: 'Surat', stateOrRegion: 'Gujarat', country: 'India', lat: 21.1702, lng: 72.8311, timezone: 5.5, continent: 'Asia' },
-  { name: 'Lucknow', stateOrRegion: 'Uttar Pradesh', country: 'India', lat: 26.8467, lng: 80.9462, timezone: 5.5, continent: 'Asia' },
-  { name: 'Kanpur', stateOrRegion: 'Uttar Pradesh', country: 'India', lat: 26.4499, lng: 80.3319, timezone: 5.5, continent: 'Asia' },
-  { name: 'Nagpur', stateOrRegion: 'Maharashtra', country: 'India', lat: 21.1458, lng: 79.0882, timezone: 5.5, continent: 'Asia' },
-  { name: 'Indore', stateOrRegion: 'Madhya Pradesh', country: 'India', lat: 22.7196, lng: 75.8577, timezone: 5.5, continent: 'Asia' },
-  { name: 'Bhopal', stateOrRegion: 'Madhya Pradesh', country: 'India', lat: 23.2599, lng: 77.4126, timezone: 5.5, continent: 'Asia' },
-  { name: 'Visakhapatnam (Vizag)', stateOrRegion: 'Andhra Pradesh', country: 'India', lat: 17.6868, lng: 83.2185, timezone: 5.5, continent: 'Asia' },
-  { name: 'Patna', stateOrRegion: 'Bihar', country: 'India', lat: 25.5941, lng: 85.1376, timezone: 5.5, continent: 'Asia' },
-  { name: 'Vadodara (Baroda)', stateOrRegion: 'Gujarat', country: 'India', lat: 22.3072, lng: 73.1812, timezone: 5.5, continent: 'Asia' },
-  { name: 'Ghaziabad', stateOrRegion: 'Uttar Pradesh', country: 'India', lat: 28.6692, lng: 77.4538, timezone: 5.5, continent: 'Asia' },
-  { name: 'Ludhiana', stateOrRegion: 'Punjab', country: 'India', lat: 30.9010, lng: 75.8573, timezone: 5.5, continent: 'Asia' },
-  { name: 'Agra', stateOrRegion: 'Uttar Pradesh', country: 'India', lat: 27.1767, lng: 78.0081, timezone: 5.5, continent: 'Asia' },
-  { name: 'Nashik', stateOrRegion: 'Maharashtra', country: 'India', lat: 19.9975, lng: 73.7898, timezone: 5.5, continent: 'Asia' },
-  { name: 'Faridabad', stateOrRegion: 'Haryana', country: 'India', lat: 28.4089, lng: 77.3178, timezone: 5.5, continent: 'Asia' },
-  { name: 'Meerut', stateOrRegion: 'Uttar Pradesh', country: 'India', lat: 28.9845, lng: 77.7064, timezone: 5.5, continent: 'Asia' },
-  { name: 'Rajkot', stateOrRegion: 'Gujarat', country: 'India', lat: 22.3039, lng: 70.8022, timezone: 5.5, continent: 'Asia' },
-  { name: 'Varanasi (Kashi)', stateOrRegion: 'Uttar Pradesh', country: 'India', lat: 25.3176, lng: 82.9739, timezone: 5.5, continent: 'Asia' },
-  { name: 'Srinagar', stateOrRegion: 'Jammu & Kashmir', country: 'India', lat: 34.0837, lng: 74.7973, timezone: 5.5, continent: 'Asia' },
-  { name: 'Amritsar', stateOrRegion: 'Punjab', country: 'India', lat: 31.6340, lng: 74.8723, timezone: 5.5, continent: 'Asia' },
-  { name: 'Allahabad (Prayagraj)', stateOrRegion: 'Uttar Pradesh', country: 'India', lat: 25.4358, lng: 81.8463, timezone: 5.5, continent: 'Asia' },
-  { name: 'Ranchi', stateOrRegion: 'Jharkhand', country: 'India', lat: 23.3441, lng: 85.3096, timezone: 5.5, continent: 'Asia' },
-  { name: 'Jabalpur', stateOrRegion: 'Madhya Pradesh', country: 'India', lat: 23.1815, lng: 79.9864, timezone: 5.5, continent: 'Asia' },
-  { name: 'Gwalior', stateOrRegion: 'Madhya Pradesh', country: 'India', lat: 26.2183, lng: 78.1828, timezone: 5.5, continent: 'Asia' },
-  { name: 'Vijayawada', stateOrRegion: 'Andhra Pradesh', country: 'India', lat: 16.5062, lng: 80.6480, timezone: 5.5, continent: 'Asia' },
-  { name: 'Jodhpur', stateOrRegion: 'Rajasthan', country: 'India', lat: 26.2389, lng: 73.0243, timezone: 5.5, continent: 'Asia' },
-  { name: 'Madurai', stateOrRegion: 'Tamil Nadu', country: 'India', lat: 9.9252, lng: 78.1198, timezone: 5.5, continent: 'Asia' },
-  { name: 'Raipur', stateOrRegion: 'Chhattisgarh', country: 'India', lat: 21.2514, lng: 81.6296, timezone: 5.5, continent: 'Asia' },
-  { name: 'Kota', stateOrRegion: 'Rajasthan', country: 'India', lat: 25.2138, lng: 75.8648, timezone: 5.5, continent: 'Asia' },
-  { name: 'Guwahati', stateOrRegion: 'Assam', country: 'India', lat: 26.1445, lng: 91.7362, timezone: 5.5, continent: 'Asia' },
-  { name: 'Chandigarh', stateOrRegion: 'Chandigarh', country: 'India', lat: 30.7333, lng: 76.7794, timezone: 5.5, continent: 'Asia' },
-  { name: 'Thiruvananthapuram (Trivandrum)', stateOrRegion: 'Kerala', country: 'India', lat: 8.5241, lng: 76.9366, timezone: 5.5, continent: 'Asia' },
-  { name: 'Kochi (Cochin)', stateOrRegion: 'Kerala', country: 'India', lat: 9.9312, lng: 76.2673, timezone: 5.5, continent: 'Asia' },
-  { name: 'Bhubaneswar', stateOrRegion: 'Odisha', country: 'India', lat: 20.2961, lng: 85.8245, timezone: 5.5, continent: 'Asia' },
-  { name: 'Dehradun', stateOrRegion: 'Uttarakhand', country: 'India', lat: 30.3165, lng: 78.0322, timezone: 5.5, continent: 'Asia' },
-  { name: 'Haridwar', stateOrRegion: 'Uttarakhand', country: 'India', lat: 29.9457, lng: 78.1642, timezone: 5.5, continent: 'Asia' },
-  { name: 'Rishikesh', stateOrRegion: 'Uttarakhand', country: 'India', lat: 30.0869, lng: 78.2676, timezone: 5.5, continent: 'Asia' },
-  { name: 'Ujjain', stateOrRegion: 'Madhya Pradesh', country: 'India', lat: 23.1765, lng: 75.7885, timezone: 5.5, continent: 'Asia' },
-  { name: 'Ayodhya', stateOrRegion: 'Uttar Pradesh', country: 'India', lat: 26.7922, lng: 82.1998, timezone: 5.5, continent: 'Asia' },
-  { name: 'Mathura', stateOrRegion: 'Uttar Pradesh', country: 'India', lat: 27.4924, lng: 77.6737, timezone: 5.5, continent: 'Asia' },
-  { name: 'Tirupati', stateOrRegion: 'Andhra Pradesh', country: 'India', lat: 13.6288, lng: 79.4192, timezone: 5.5, continent: 'Asia' },
-  { name: 'Puri', stateOrRegion: 'Odisha', country: 'India', lat: 19.8135, lng: 85.8312, timezone: 5.5, continent: 'Asia' },
-  { name: 'Rameswaram', stateOrRegion: 'Tamil Nadu', country: 'India', lat: 9.2876, lng: 79.3129, timezone: 5.5, continent: 'Asia' },
-  { name: 'Vadnagar', stateOrRegion: 'Gujarat', country: 'India', lat: 23.7842, lng: 72.6369, timezone: 5.5, continent: 'Asia' },
-  { name: 'Shimla', stateOrRegion: 'Himachal Pradesh', country: 'India', lat: 31.1048, lng: 77.1734, timezone: 5.5, continent: 'Asia' },
-  { name: 'Jammu', stateOrRegion: 'Jammu & Kashmir', country: 'India', lat: 32.7266, lng: 74.8570, timezone: 5.5, continent: 'Asia' },
-  { name: 'Silchar', stateOrRegion: 'Assam', country: 'India', lat: 24.8333, lng: 92.7789, timezone: 5.5, continent: 'Asia' },
-  { name: 'Dibrugarh', stateOrRegion: 'Assam', country: 'India', lat: 27.4728, lng: 94.9120, timezone: 5.5, continent: 'Asia' },
-  { name: 'Jorhat', stateOrRegion: 'Assam', country: 'India', lat: 26.7509, lng: 94.2037, timezone: 5.5, continent: 'Asia' },
-  { name: 'Tezpur', stateOrRegion: 'Assam', country: 'India', lat: 26.6528, lng: 92.7926, timezone: 5.5, continent: 'Asia' },
-  { name: 'Shillong', stateOrRegion: 'Meghalaya', country: 'India', lat: 25.5788, lng: 91.8933, timezone: 5.5, continent: 'Asia' },
-  { name: 'Agartala', stateOrRegion: 'Tripura', country: 'India', lat: 23.8315, lng: 91.2868, timezone: 5.5, continent: 'Asia' },
-  { name: 'Imphal', stateOrRegion: 'Manipur', country: 'India', lat: 24.8170, lng: 93.9368, timezone: 5.5, continent: 'Asia' },
-  { name: 'Aizawl', stateOrRegion: 'Mizoram', country: 'India', lat: 23.7271, lng: 92.7176, timezone: 5.5, continent: 'Asia' },
-  { name: 'Kohima', stateOrRegion: 'Nagaland', country: 'India', lat: 25.6751, lng: 94.1086, timezone: 5.5, continent: 'Asia' },
-  { name: 'Gangtok', stateOrRegion: 'Sikkim', country: 'India', lat: 27.3389, lng: 88.6065, timezone: 5.5, continent: 'Asia' },
-  { name: 'Port Blair', stateOrRegion: 'Andaman & Nicobar', country: 'India', lat: 11.6234, lng: 92.7265, timezone: 5.5, continent: 'Asia' },
+// Map helper for continent assignment
+function getContinentForCountry(country: string): string {
+  if (country === 'India' || country === 'Nepal' || country === 'Sri Lanka' || country === 'Bangladesh' || country === 'Bhutan' || country === 'Maldives' || country === 'Myanmar' || country === 'United Arab Emirates' || country === 'Qatar' || country === 'Saudi Arabia' || country === 'Kuwait' || country === 'Oman' || country === 'Bahrain' || country === 'Singapore' || country === 'Malaysia' || country === 'Thailand' || country === 'Japan' || country === 'China' || country === 'South Korea' || country === 'Indonesia' || country === 'Vietnam' || country === 'Philippines' || country === 'Taiwan' || country === 'Hong Kong') {
+    return 'Asia';
+  }
+  if (country === 'United States' || country === 'Canada' || country === 'Mexico') {
+    return 'North America';
+  }
+  if (country === 'United Kingdom' || country === 'Germany' || country === 'France' || country === 'Italy' || country === 'Spain' || country === 'Netherlands' || country === 'Switzerland' || country === 'Sweden' || country === 'Poland' || country === 'Ireland' || country === 'Austria' || country === 'Norway' || country === 'Denmark' || country === 'Finland' || country === 'Greece' || country === 'Portugal' || country === 'Belgium' || country === 'Czech Republic' || country === 'Hungary' || country === 'Russia') {
+    return 'Europe';
+  }
+  if (country === 'Australia' || country === 'New Zealand' || country === 'Fiji') {
+    return 'Oceania';
+  }
+  if (country === 'South Africa' || country === 'Egypt' || country === 'Nigeria' || country === 'Kenya' || country === 'Morocco' || country === 'Ghana' || country === 'Tanzania' || country === 'Ethiopia' || country === 'Mauritius') {
+    return 'Africa';
+  }
+  if (country === 'Brazil' || country === 'Argentina' || country === 'Colombia' || country === 'Chile' || country === 'Peru' || country === 'Ecuador' || country === 'Uruguay' || country === 'Venezuela' || country === 'Guyana' || country === 'Suriname' || country === 'Trinidad & Tobago') {
+    return 'South America';
+  }
+  return 'Asia';
+}
+
+/**
+ * Merged Master World Cities Database
+ * Contains 700+ verified Indian cities (all districts & Assam towns) + major international cities
+ */
+export const WORLD_CITIES: WorldCity[] = [
+  ...POPULAR_CITIES.map((c) => ({
+    ...c,
+    continent: getContinentForCountry(c.country),
+  })),
+  ...GLOBAL_INTERNATIONAL_CITIES.filter((gc) => 
+    !POPULAR_CITIES.some(
+      (pc) => pc.name.toLowerCase() === gc.name.toLowerCase() && 
+              pc.country.toLowerCase() === gc.country.toLowerCase()
+    )
+  ),
 ];
 
 export const STANDARD_TIMEZONES = [
@@ -328,10 +301,13 @@ export const STANDARD_TIMEZONES = [
 ];
 
 /**
- * Filter worldwide cities with alias and fuzzy fallback
+ * Filter worldwide cities with ranking: exact match > prefix match > state/region match > substring match
  */
-export function searchWorldCities(query: string, limit = 40): WorldCity[] {
+export function searchWorldCities(query: string, limit = 50, filterContinent?: string): WorldCity[] {
   if (!query || query.trim().length === 0) {
+    if (filterContinent && filterContinent !== 'all') {
+      return WORLD_CITIES.filter(c => c.continent?.toLowerCase() === filterContinent.toLowerCase()).slice(0, limit);
+    }
     return WORLD_CITIES.slice(0, limit);
   }
 
@@ -349,6 +325,7 @@ export function searchWorldCities(query: string, limit = 40): WorldCity[] {
     'allahabad': 'prayagraj',
     'trivandrum': 'thiruvananthapuram',
     'cochin': 'kochi',
+    'gauhati': 'guwahati',
     'saigon': 'ho chi minh',
     'nyc': 'new york',
     'la': 'los angeles',
@@ -361,20 +338,70 @@ export function searchWorldCities(query: string, limit = 40): WorldCity[] {
 
   const effectiveTerm = aliases[cleanQuery] || cleanQuery;
 
-  return WORLD_CITIES.filter((city) => {
+  const scored: { city: WorldCity; score: number }[] = [];
+
+  for (const city of WORLD_CITIES) {
+    if (filterContinent && filterContinent !== 'all' && city.continent?.toLowerCase() !== filterContinent.toLowerCase()) {
+      continue;
+    }
+
     const cityName = city.name.toLowerCase();
     const region = (city.stateOrRegion || '').toLowerCase();
     const country = city.country.toLowerCase();
-    const continent = (city.continent || '').toLowerCase();
 
-    return (
-      cityName.includes(cleanQuery) ||
-      cityName.includes(effectiveTerm) ||
-      region.includes(cleanQuery) ||
-      country.includes(cleanQuery) ||
-      continent.includes(cleanQuery)
-    );
-  }).slice(0, limit);
+    let score = 0;
+
+    // Exact city match
+    if (cityName === cleanQuery || cityName === effectiveTerm) {
+      score = 100;
+    } 
+    // City name starts with query (e.g. "Delh" -> New Delhi / Delhi, "Jorh" -> Jorhat)
+    else if (cityName.startsWith(cleanQuery) || cityName.startsWith(effectiveTerm)) {
+      score = 85;
+    } 
+    // Sub-word in city starts with query (e.g. "Delhi" in "New Delhi")
+    else if (cityName.includes(' ' + cleanQuery) || cityName.includes(' ' + effectiveTerm)) {
+      score = 80;
+    } 
+    // Exact State/Region match (e.g. query "Assam" or "Delhi NCR" or "Gujarat")
+    else if (region === cleanQuery || region === effectiveTerm) {
+      score = 75;
+    } 
+    // State/Region starts with query (e.g. "Assa" -> Assam)
+    else if (region.startsWith(cleanQuery) || region.startsWith(effectiveTerm)) {
+      score = 65;
+    } 
+    // City name contains query
+    else if (cityName.includes(cleanQuery) || cityName.includes(effectiveTerm)) {
+      score = 50;
+    } 
+    // State/Region contains query
+    else if (region.includes(cleanQuery) || region.includes(effectiveTerm)) {
+      score = 40;
+    } 
+    // Country starts with query
+    else if (country.startsWith(cleanQuery)) {
+      score = 30;
+    } 
+    // Country contains query
+    else if (country.includes(cleanQuery)) {
+      score = 20;
+    }
+
+    if (score > 0) {
+      scored.push({ city, score });
+    }
+  }
+
+  scored.sort((a, b) => b.score - a.score);
+  return scored.slice(0, limit).map((item) => item.city);
+}
+
+/**
+ * Get all Assam cities & towns directly
+ */
+export function getAssamCities(): WorldCity[] {
+  return WORLD_CITIES.filter(c => c.country === 'India' && (c.stateOrRegion || '').toLowerCase().includes('assam'));
 }
 
 /**
@@ -384,4 +411,30 @@ export function formatCoordinates(lat: number, lng: number): string {
   const latDir = lat >= 0 ? 'N' : 'S';
   const lngDir = lng >= 0 ? 'E' : 'W';
   return `${Math.abs(lat).toFixed(4)}° ${latDir}, ${Math.abs(lng).toFixed(4)}° ${lngDir}`;
+}
+
+/**
+ * Find the closest city/town to given coordinates
+ */
+export function findClosestCity(lat: number, lng: number): { city: WorldCity; distanceKm: number } | null {
+  let closest: WorldCity | null = null;
+  let minDistance = Infinity;
+
+  for (const city of WORLD_CITIES) {
+    const dLat = (city.lat - lat) * (Math.PI / 180);
+    const dLng = (city.lng - lng) * (Math.PI / 180);
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(lat * (Math.PI / 180)) * Math.cos(city.lat * (Math.PI / 180)) *
+      Math.sin(dLng / 2) * Math.sin(dLng / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    const dKm = 6371 * c;
+
+    if (dKm < minDistance) {
+      minDistance = dKm;
+      closest = city;
+    }
+  }
+
+  return closest ? { city: closest, distanceKm: Math.round(minDistance * 10) / 10 } : null;
 }

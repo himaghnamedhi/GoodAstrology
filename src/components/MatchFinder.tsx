@@ -18,16 +18,24 @@ import {
   ChevronUp, 
   Flame,
   Users,
+  User,
   Search,
   BookOpen,
   Award,
-  FileText
+  FileText,
+  Globe,
+  X
 } from 'lucide-react';
+import { WorldCoordinateMap } from './WorldCoordinateMap';
 import { 
   POPULAR_CITIES, 
   CityPreset, 
   BirthDetails 
 } from '../data/vedicAstrologyCalculator';
+import { 
+  WORLD_CITIES,
+  WorldCity
+} from '../data/worldCitiesData';
 import { 
   calculateVedAstroMatch, 
   VedAstroMatchReport, 
@@ -41,15 +49,15 @@ interface MatchFinderProps {
 }
 
 export const MatchFinder: React.FC<MatchFinderProps> = ({ onNavigateToTab, onOpenCustomReport }) => {
-  // Partner 1 (Groom / Boy) State
+  // Partner 1 (Groom / Boy) State - Initialized to Nalbari, Assam
   const [p1Details, setP1Details] = useState<BirthDetails>({
     name: '',
     gender: 'male',
     dob: '1996-05-15',
     tob: '08:30',
-    city: 'Varanasi (Kashi)',
-    latitude: 25.3176,
-    longitude: 82.9739,
+    city: 'Nalbari, Assam',
+    latitude: 26.4449,
+    longitude: 91.4429,
     timezoneOffset: 5.5,
     weightKg: 68,
     weightUnit: 'kg',
@@ -61,15 +69,15 @@ export const MatchFinder: React.FC<MatchFinderProps> = ({ onNavigateToTab, onOpe
   const [p1CityDropdown, setP1CityDropdown] = useState<boolean>(false);
   const [p1CitySearch, setP1CitySearch] = useState<string>('');
 
-  // Partner 2 (Bride / Girl) State
+  // Partner 2 (Bride / Girl) State - Initialized to Dibrugarh, Assam
   const [p2Details, setP2Details] = useState<BirthDetails>({
     name: '',
     gender: 'female',
     dob: '1998-11-20',
     tob: '14:15',
-    city: 'Lucknow',
-    latitude: 26.8467,
-    longitude: 80.9462,
+    city: 'Dibrugarh, Assam',
+    latitude: 27.4728,
+    longitude: 94.9120,
     timezoneOffset: 5.5,
     weightKg: 54,
     weightUnit: 'kg',
@@ -80,6 +88,7 @@ export const MatchFinder: React.FC<MatchFinderProps> = ({ onNavigateToTab, onOpe
   const [p2TimeUnknown, setP2TimeUnknown] = useState<boolean>(false);
   const [p2CityDropdown, setP2CityDropdown] = useState<boolean>(false);
   const [p2CitySearch, setP2CitySearch] = useState<string>('');
+  const [mapModalPartner, setMapModalPartner] = useState<'p1' | 'p2' | null>(null);
 
   // Display View & Details Mode
   const [viewMode, setViewMode] = useState<'easy' | 'advanced'>('easy');
@@ -162,24 +171,30 @@ export const MatchFinder: React.FC<MatchFinderProps> = ({ onNavigateToTab, onOpe
 
   // Filtered cities for P1
   const filteredP1Cities = useMemo(() => {
-    if (!p1CitySearch.trim()) return POPULAR_CITIES.slice(0, 50);
-    const q = p1CitySearch.toLowerCase();
-    return POPULAR_CITIES.filter(c => 
+    if (!p1CitySearch.trim()) {
+      // Show Assam & top Indian cities first
+      return WORLD_CITIES.slice(0, 60);
+    }
+    const q = p1CitySearch.toLowerCase().trim();
+    return WORLD_CITIES.filter(c => 
       c.name.toLowerCase().includes(q) || 
       (c.stateOrRegion && c.stateOrRegion.toLowerCase().includes(q)) ||
       c.country.toLowerCase().includes(q)
-    );
+    ).slice(0, 80);
   }, [p1CitySearch]);
 
   // Filtered cities for P2
   const filteredP2Cities = useMemo(() => {
-    if (!p2CitySearch.trim()) return POPULAR_CITIES.slice(0, 50);
-    const q = p2CitySearch.toLowerCase();
-    return POPULAR_CITIES.filter(c => 
+    if (!p2CitySearch.trim()) {
+      // Show Assam & top Indian cities first
+      return WORLD_CITIES.slice(0, 60);
+    }
+    const q = p2CitySearch.toLowerCase().trim();
+    return WORLD_CITIES.filter(c => 
       c.name.toLowerCase().includes(q) || 
       (c.stateOrRegion && c.stateOrRegion.toLowerCase().includes(q)) ||
       c.country.toLowerCase().includes(q)
-    );
+    ).slice(0, 80);
   }, [p2CitySearch]);
 
   const handleCopySummary = () => {
@@ -250,18 +265,28 @@ Calculated via GoodAstrology Match Finder`;
         }`}>
           <div className="flex items-center justify-between pb-3 border-b border-stone-200/80">
             <div className="flex items-center gap-2.5">
-              <div className={`w-8 h-8 rounded-xl flex items-center justify-center font-bold text-sm border transition-colors ${
+              <div className={`w-8 h-8 rounded-xl flex items-center justify-center border shadow-2xs shrink-0 transition-colors ${
                 p1Details.gender === 'male'
                   ? 'bg-blue-100 text-blue-900 border-blue-200'
                   : p1Details.gender === 'female'
                   ? 'bg-pink-100 text-pink-900 border-pink-200'
                   : 'bg-amber-100 text-amber-950 border-amber-200'
               }`}>
-                1
+                <User className={`w-4 h-4 ${
+                  p1Details.gender === 'male'
+                    ? 'text-blue-900'
+                    : p1Details.gender === 'female'
+                    ? 'text-pink-900'
+                    : 'text-amber-900'
+                }`} />
               </div>
               <div>
                 <h3 className={`text-base font-bold font-vedic transition-colors ${
-                  p1Details.gender === 'male' ? 'text-blue-950' : p1Details.gender === 'female' ? 'text-pink-950' : 'text-stone-900'
+                  p1Details.gender === 'male'
+                    ? 'text-blue-950'
+                    : p1Details.gender === 'female'
+                    ? 'text-pink-950'
+                    : 'text-stone-900'
                 }`}>
                   Partner 1
                 </h3>
@@ -306,24 +331,33 @@ Calculated via GoodAstrology Match Finder`;
                 <div className="grid grid-cols-3 gap-1 p-1 bg-stone-100 rounded-xl border border-stone-200 h-[42px] items-center">
                   {(['male', 'female', 'other'] as const).map((g) => {
                     const isSelected = p1Details.gender === g;
-                    const activeColor = g === 'male'
-                      ? 'bg-blue-600 text-white shadow-xs'
-                      : g === 'female'
-                      ? 'bg-pink-600 text-white shadow-xs'
-                      : 'bg-stone-800 text-white shadow-xs';
+                    const activeColor =
+                      g === 'male'
+                        ? 'bg-blue-600 text-white shadow-xs'
+                        : g === 'female'
+                        ? 'bg-pink-600 text-white shadow-xs'
+                        : 'bg-stone-800 text-white shadow-xs';
+                    const hoverColor =
+                      g === 'male'
+                        ? 'hover:bg-blue-50 hover:text-blue-800'
+                        : g === 'female'
+                        ? 'hover:bg-pink-50 hover:text-pink-800'
+                        : 'hover:bg-stone-200/60';
 
                     return (
                       <button
                         key={g}
                         type="button"
                         onClick={() => setP1Details(prev => ({ ...prev, gender: g }))}
-                        className={`h-8 px-2 rounded-lg text-xs font-bold capitalize transition-all cursor-pointer ${
+                        className={`h-8 px-2 rounded-lg text-xs font-bold capitalize transition-all cursor-pointer flex items-center justify-center gap-1 ${
                           isSelected
                             ? activeColor
-                            : 'text-stone-600 hover:text-stone-900 hover:bg-stone-200/60'
+                            : `text-stone-600 ${hoverColor}`
                         }`}
                       >
-                        {g}
+                        {g === 'male' && <span>♂</span>}
+                        {g === 'female' && <span>♀</span>}
+                        <span>{g}</span>
                       </button>
                     );
                   })}
@@ -445,7 +479,7 @@ Calculated via GoodAstrology Match Finder`;
 
                 {p1CityDropdown && (
                   <div className="absolute top-full mt-1.5 left-0 right-0 z-30 bg-white rounded-2xl border border-stone-300 shadow-xl p-3 space-y-2 max-h-60 overflow-y-auto">
-                    <div className="sticky top-0 bg-white pb-2 border-b border-stone-100">
+                    <div className="sticky top-0 bg-white pb-2 border-b border-stone-100 space-y-1.5">
                       <div className="relative">
                         <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-stone-400" />
                         <input
@@ -456,6 +490,17 @@ Calculated via GoodAstrology Match Finder`;
                           className="w-full pl-8 pr-3 py-1.5 text-xs rounded-xl border border-stone-200 bg-stone-50 focus:outline-none focus:ring-1 focus:ring-amber-500"
                         />
                       </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setMapModalPartner('p1');
+                          setP1CityDropdown(false);
+                        }}
+                        className="w-full px-2.5 py-1.5 rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-900 text-[11px] font-bold flex items-center justify-center gap-1.5 border border-amber-200 transition-colors cursor-pointer"
+                      >
+                        <Globe className="w-3.5 h-3.5 text-amber-800" />
+                        <span>Choose on Google Maps</span>
+                      </button>
                     </div>
                     <div className="space-y-1">
                       {filteredP1Cities.map((city) => (
@@ -501,18 +546,28 @@ Calculated via GoodAstrology Match Finder`;
         }`}>
           <div className="flex items-center justify-between pb-3 border-b border-stone-200/80">
             <div className="flex items-center gap-2.5">
-              <div className={`w-8 h-8 rounded-xl flex items-center justify-center font-bold text-sm border transition-colors ${
+              <div className={`w-8 h-8 rounded-xl flex items-center justify-center border shadow-2xs shrink-0 transition-colors ${
                 p2Details.gender === 'female'
                   ? 'bg-pink-100 text-pink-900 border-pink-200'
                   : p2Details.gender === 'male'
                   ? 'bg-blue-100 text-blue-900 border-blue-200'
                   : 'bg-amber-100 text-amber-950 border-amber-200'
               }`}>
-                2
+                <User className={`w-4 h-4 ${
+                  p2Details.gender === 'female'
+                    ? 'text-pink-900'
+                    : p2Details.gender === 'male'
+                    ? 'text-blue-900'
+                    : 'text-amber-900'
+                }`} />
               </div>
               <div>
                 <h3 className={`text-base font-bold font-vedic transition-colors ${
-                  p2Details.gender === 'female' ? 'text-pink-950' : p2Details.gender === 'male' ? 'text-blue-950' : 'text-stone-900'
+                  p2Details.gender === 'female'
+                    ? 'text-pink-950'
+                    : p2Details.gender === 'male'
+                    ? 'text-blue-950'
+                    : 'text-stone-900'
                 }`}>
                   Partner 2
                 </h3>
@@ -557,24 +612,33 @@ Calculated via GoodAstrology Match Finder`;
                 <div className="grid grid-cols-3 gap-1 p-1 bg-stone-100 rounded-xl border border-stone-200 h-[42px] items-center">
                   {(['male', 'female', 'other'] as const).map((g) => {
                     const isSelected = p2Details.gender === g;
-                    const activeColor = g === 'female'
-                      ? 'bg-pink-600 text-white shadow-xs'
-                      : g === 'male'
-                      ? 'bg-blue-600 text-white shadow-xs'
-                      : 'bg-stone-800 text-white shadow-xs';
+                    const activeColor =
+                      g === 'female'
+                        ? 'bg-pink-600 text-white shadow-xs'
+                        : g === 'male'
+                        ? 'bg-blue-600 text-white shadow-xs'
+                        : 'bg-stone-800 text-white shadow-xs';
+                    const hoverColor =
+                      g === 'female'
+                        ? 'hover:bg-pink-50 hover:text-pink-800'
+                        : g === 'male'
+                        ? 'hover:bg-blue-50 hover:text-blue-800'
+                        : 'hover:bg-stone-200/60';
 
                     return (
                       <button
                         key={g}
                         type="button"
                         onClick={() => setP2Details(prev => ({ ...prev, gender: g }))}
-                        className={`h-8 px-2 rounded-lg text-xs font-bold capitalize transition-all cursor-pointer ${
+                        className={`h-8 px-2 rounded-lg text-xs font-bold capitalize transition-all cursor-pointer flex items-center justify-center gap-1 ${
                           isSelected
                             ? activeColor
-                            : 'text-stone-600 hover:text-stone-900 hover:bg-stone-200/60'
+                            : `text-stone-600 ${hoverColor}`
                         }`}
                       >
-                        {g}
+                        {g === 'female' && <span>♀</span>}
+                        {g === 'male' && <span>♂</span>}
+                        <span>{g}</span>
                       </button>
                     );
                   })}
@@ -696,7 +760,7 @@ Calculated via GoodAstrology Match Finder`;
 
                 {p2CityDropdown && (
                   <div className="absolute top-full mt-1.5 left-0 right-0 z-30 bg-white rounded-2xl border border-stone-300 shadow-xl p-3 space-y-2 max-h-60 overflow-y-auto">
-                    <div className="sticky top-0 bg-white pb-2 border-b border-stone-100">
+                    <div className="sticky top-0 bg-white pb-2 border-b border-stone-100 space-y-1.5">
                       <div className="relative">
                         <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-stone-400" />
                         <input
@@ -707,6 +771,17 @@ Calculated via GoodAstrology Match Finder`;
                           className="w-full pl-8 pr-3 py-1.5 text-xs rounded-xl border border-stone-200 bg-stone-50 focus:outline-none focus:ring-1 focus:ring-amber-500"
                         />
                       </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setMapModalPartner('p2');
+                          setP2CityDropdown(false);
+                        }}
+                        className="w-full px-2.5 py-1.5 rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-900 text-[11px] font-bold flex items-center justify-center gap-1.5 border border-amber-200 transition-colors cursor-pointer"
+                      >
+                        <Globe className="w-3.5 h-3.5 text-amber-800" />
+                        <span>Choose on Google Maps</span>
+                      </button>
                     </div>
                     <div className="space-y-1">
                       {filteredP2Cities.map((city) => (
@@ -958,17 +1033,20 @@ Calculated via GoodAstrology Match Finder`;
                   ? 'border-pink-200/60'
                   : 'border-amber-200/60'
               }`}>
-                <span className={`font-bold text-sm ${
+                <span className={`font-bold text-sm flex items-center gap-1.5 ${
                   p1Details.gender === 'male' ? 'text-blue-950' : p1Details.gender === 'female' ? 'text-pink-950' : 'text-amber-950'
                 }`}>
-                  {matchReport.partner1.name}
+                  <User className={`w-3.5 h-3.5 ${
+                    p1Details.gender === 'male' ? 'text-blue-800' : p1Details.gender === 'female' ? 'text-pink-800' : 'text-amber-800'
+                  }`} />
+                  <span>{matchReport.partner1.name}</span>
                 </span>
                 <span className={`text-[10px] font-semibold px-2 py-0.5 rounded capitalize ${
                   p1Details.gender === 'male'
-                    ? 'bg-blue-100 text-blue-900'
+                    ? 'bg-blue-100 text-blue-900 border border-blue-200/70'
                     : p1Details.gender === 'female'
-                    ? 'bg-pink-100 text-pink-900'
-                    : 'bg-amber-100 text-amber-900'
+                    ? 'bg-pink-100 text-pink-900 border border-pink-200/70'
+                    : 'bg-amber-100 text-amber-900 border border-amber-200/60'
                 }`}>
                   Partner 1 ({p1Details.gender === 'male' ? '♂ Male' : p1Details.gender === 'female' ? '♀ Female' : p1Details.gender})
                 </span>
@@ -1010,17 +1088,20 @@ Calculated via GoodAstrology Match Finder`;
                   ? 'border-blue-200/60'
                   : 'border-amber-200/60'
               }`}>
-                <span className={`font-bold text-sm ${
+                <span className={`font-bold text-sm flex items-center gap-1.5 ${
                   p2Details.gender === 'female' ? 'text-pink-950' : p2Details.gender === 'male' ? 'text-blue-950' : 'text-amber-950'
                 }`}>
-                  {matchReport.partner2.name}
+                  <User className={`w-3.5 h-3.5 ${
+                    p2Details.gender === 'female' ? 'text-pink-800' : p2Details.gender === 'male' ? 'text-blue-800' : 'text-amber-800'
+                  }`} />
+                  <span>{matchReport.partner2.name}</span>
                 </span>
                 <span className={`text-[10px] font-semibold px-2 py-0.5 rounded capitalize ${
                   p2Details.gender === 'female'
-                    ? 'bg-pink-100 text-pink-900'
+                    ? 'bg-pink-100 text-pink-900 border border-pink-200/70'
                     : p2Details.gender === 'male'
-                    ? 'bg-blue-100 text-blue-900'
-                    : 'bg-amber-100 text-amber-900'
+                    ? 'bg-blue-100 text-blue-900 border border-blue-200/70'
+                    : 'bg-amber-100 text-amber-900 border border-amber-200/60'
                 }`}>
                   Partner 2 ({p2Details.gender === 'female' ? '♀ Female' : p2Details.gender === 'male' ? '♂ Male' : p2Details.gender})
                 </span>
@@ -1648,7 +1729,7 @@ Calculated via GoodAstrology Match Finder`;
             {/* Printable Content Area */}
             <div id="printable-match-report" className="space-y-6 text-xs text-stone-800">
               <div className="text-center space-y-1 pb-4 border-b border-stone-200">
-                <span className="text-[10px] font-bold uppercase tracking-widest text-amber-800">GoodAstrology • Kundali Milan Engine</span>
+                <span className="text-[10px] font-bold uppercase tracking-widest text-amber-800">GoodAstrology • Vedic Kundali Milan</span>
                 <h2 className="text-xl font-extrabold text-stone-900 font-vedic">
                   {matchReport.partner1.name} &amp; {matchReport.partner2.name}
                 </h2>
@@ -1719,6 +1800,76 @@ Calculated via GoodAstrology Match Finder`;
               >
                 <Printer className="w-3.5 h-3.5" />
                 <span>Print Document</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Google Maps Modal for Match Finder */}
+      {mapModalPartner && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-5 overflow-y-auto">
+          <div className="bg-white rounded-3xl shadow-2xl max-w-4xl w-full max-h-[92vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+            {/* Header: Clean unbordered */}
+            <div className="px-6 pt-5 pb-2 flex items-center justify-between bg-white">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-lg bg-amber-100 text-amber-900 flex items-center justify-center">
+                  <Globe className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="text-sm sm:text-base font-bold text-stone-900">
+                    Choose {mapModalPartner === 'p1' ? 'Partner 1 (Groom)' : 'Partner 2 (Bride)'} Location on Google Maps
+                  </h3>
+                  <p className="text-[11px] text-stone-500">
+                    Click anywhere on Google Maps or drag the pin to set exact coordinates
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setMapModalPartner(null)}
+                className="p-1.5 rounded-lg text-stone-400 hover:text-stone-700 hover:bg-stone-100 transition-colors cursor-pointer"
+                title="Close map"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            {/* Content: Clean unified screen */}
+            <div className="px-6 py-2 overflow-y-auto flex-1 bg-white">
+              <WorldCoordinateMap
+                latitude={mapModalPartner === 'p1' ? p1Details.latitude : p2Details.latitude}
+                longitude={mapModalPartner === 'p1' ? p1Details.longitude : p2Details.longitude}
+                timezoneOffset={mapModalPartner === 'p1' ? p1Details.timezoneOffset : p2Details.timezoneOffset}
+                cityName={mapModalPartner === 'p1' ? p1Details.city : p2Details.city}
+                onChange={(updates) => {
+                  if (mapModalPartner === 'p1') {
+                    setP1Details(prev => ({
+                      ...prev,
+                      latitude: updates.latitude,
+                      longitude: updates.longitude,
+                      timezoneOffset: updates.timezoneOffset,
+                      city: updates.cityName || prev.city,
+                    }));
+                  } else {
+                    setP2Details(prev => ({
+                      ...prev,
+                      latitude: updates.latitude,
+                      longitude: updates.longitude,
+                      timezoneOffset: updates.timezoneOffset,
+                      city: updates.cityName || prev.city,
+                    }));
+                  }
+                }}
+              />
+            </div>
+            {/* Footer: Clean unbordered */}
+            <div className="px-6 pt-2 pb-5 bg-white flex justify-end">
+              <button
+                type="button"
+                onClick={() => setMapModalPartner(null)}
+                className="px-5 py-2.5 rounded-xl bg-amber-900 hover:bg-amber-800 text-amber-50 font-bold text-xs shadow-xs cursor-pointer"
+              >
+                Done &amp; Apply Location
               </button>
             </div>
           </div>

@@ -429,7 +429,7 @@ export const KundliReportPages: React.FC<KundliReportPagesProps> = ({
           {/* Page 2 Footer */}
           <div className="pt-2 border-t border-amber-900/30 flex items-center justify-between text-[9.5px] text-stone-500">
             <span>goodastrology • Classical Vedic Horoscope Janam Patrika</span>
-            <span className="font-semibold text-stone-700">Himaghna Medhi • Jyotish Calculation Engine</span>
+            <span className="font-semibold text-stone-700">Himaghna Medhi • Vedic Jyotish Calculations</span>
             <span className="font-bold text-amber-950">Page 2 of 2</span>
           </div>
         </div>

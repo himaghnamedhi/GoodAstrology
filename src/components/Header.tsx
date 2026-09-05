@@ -62,11 +62,11 @@ export const Header: React.FC<HeaderProps> = ({
             >
               <img
                 src="/icons/app_logo.svg"
-                alt="Kundali Generator"
+                alt="Kundali Maker"
                 className="w-4 h-4 rounded-xs shrink-0 object-cover"
                 referrerPolicy="no-referrer"
               />
-              <span>Kundali Generator</span>
+              <span>Kundali Maker</span>
             </button>
 
             <button
@@ -149,7 +149,7 @@ export const Header: React.FC<HeaderProps> = ({
         {/* Mobile Navigation Row */}
         <div className="flex md:hidden overflow-x-auto py-2.5 gap-2 border-t border-stone-200/80 no-scrollbar -mx-4 px-4">
           {[
-            { id: 'generator', label: 'Kundali Generator', icon: Sparkles },
+            { id: 'generator', label: 'Kundali Maker', icon: Sparkles },
             { id: 'chart', label: 'House Chart', icon: Compass },
             { id: 'gemstones', label: 'Gemstones', icon: Gem },
             { id: 'match', label: 'Match Finder', icon: Heart },
