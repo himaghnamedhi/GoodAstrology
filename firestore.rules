@@ -1,0 +1,78 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 1. Global Safety Net: default-deny catch-all
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Helper functions
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isValidPartner(p) {
+      return p is map &&
+        p.keys().hasAll(['name', 'gender', 'dob', 'tob', 'hour', 'minute', 'period', 'city', 'latitude', 'longitude', 'timezoneOffset']) &&
+        p.name is string && p.name.size() <= 100 &&
+        p.gender is string && (p.gender == 'male' || p.gender == 'female' || p.gender == 'other') &&
+        p.dob is string && p.dob.size() == 10 &&
+        p.tob is string && p.tob.size() <= 10 &&
+        p.hour is string && p.hour.size() <= 5 &&
+        p.minute is string && p.minute.size() <= 5 &&
+        p.period is string && (p.period == 'AM' || p.period == 'PM') &&
+        p.city is string && p.city.size() <= 150 &&
+        p.latitude is number && p.latitude >= -90.0 && p.latitude <= 90.0 &&
+        p.longitude is number && p.longitude >= -180.0 && p.longitude <= 180.0 &&
+        p.timezoneOffset is number && p.timezoneOffset >= -14.0 && p.timezoneOffset <= 14.0;
+    }
+
+    function isValidMatchSubmission(data) {
+      return data.keys().hasAll(['id', 'partner1', 'partner2', 'ashtakootaScore', 'maximumScore', 'compatibilityVerdict', 'createdAt', 'expiresAt', 'sessionId']) &&
+        data.keys().size() == 9 &&
+        data.id is string && isValidId(data.id) &&
+        isValidPartner(data.partner1) &&
+        isValidPartner(data.partner2) &&
+        data.ashtakootaScore is number && data.ashtakootaScore >= 0 && data.ashtakootaScore <= 36 &&
+        data.maximumScore is number && data.maximumScore == 36 &&
+        data.compatibilityVerdict is string && data.compatibilityVerdict.size() <= 200 &&
+        data.createdAt == request.time &&
+        data.expiresAt is timestamp &&
+        data.expiresAt > request.time &&
+        data.expiresAt <= request.time + duration.value(24, 'h') + duration.value(5, 'm') &&
+        data.sessionId is string && data.sessionId.size() <= 128;
+    }
+
+    // Match Finder 24-hour collection
+    match /matchSubmissions/{matchId} {
+      // Creation: strict validation, immutable calculation, exact 24h expiration ceiling
+      allow create: if isValidId(matchId) && 
+        matchId == incoming().id &&
+        isValidMatchSubmission(incoming());
+
+      // Single-document read: Allowed only if within 24-hour validity window
+      allow get: if isValidId(matchId) && 
+        existing().expiresAt > request.time;
+
+      // Collection list: Must enforce that returned records are active (not expired)
+      allow list: if resource.data.expiresAt > request.time;
+
+      // Updates: Prohibited to ensure audit integrity of the calculation
+      allow update: if false;
+
+      // Deletion: Permitted once record has expired or by owner/session
+      allow delete: if isValidId(matchId) && (
+        existing().expiresAt <= request.time ||
+        (request.auth != null && request.auth.uid == existing().sessionId)
+      );
+    }
+  }
+}

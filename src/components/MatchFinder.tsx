@@ -24,8 +24,18 @@ import {
   Award,
   FileText,
   Globe,
-  X
+  X,
+  Database,
+  Trash2,
+  RefreshCw,
+  Cloud
 } from 'lucide-react';
+import { 
+  saveMatchSubmission, 
+  getSessionMatches, 
+  deleteMatchSubmission, 
+  StoredMatchSubmission 
+} from '../lib/firebase';
 import { WorldCoordinateMap } from './WorldCoordinateMap';
 import { 
   POPULAR_CITIES, 
@@ -97,13 +107,104 @@ export const MatchFinder: React.FC<MatchFinderProps> = ({ onNavigateToTab, onOpe
   const [copiedNotification, setCopiedNotification] = useState<boolean>(false);
   const [hasCalculated, setHasCalculated] = useState<boolean>(false);
 
+  // Firebase 24-Hour Cloud Storage State
+  const [isSavingToFirebase, setIsSavingToFirebase] = useState<boolean>(false);
+  const [firebaseStatus, setFirebaseStatus] = useState<{
+    id: string;
+    expiresAtDate: Date;
+  } | null>(null);
+  const [firebaseError, setFirebaseError] = useState<string | null>(null);
+  const [showHistoryModal, setShowHistoryModal] = useState<boolean>(false);
+  const [recentMatches, setRecentMatches] = useState<StoredMatchSubmission[]>([]);
+  const [isLoadingRecent, setIsLoadingRecent] = useState<boolean>(false);
+
   // Active calculated match report
   const [matchReport, setMatchReport] = useState<VedAstroMatchReport>(() => 
     calculateVedAstroMatch(p1Details, p2Details)
   );
 
-  // Recalculate match report
-  const handleCalculateMatch = () => {
+  // Open 24h calculations modal
+  const handleOpenHistory = async () => {
+    setShowHistoryModal(true);
+    setIsLoadingRecent(true);
+    try {
+      const list = await getSessionMatches();
+      setRecentMatches(list);
+    } catch (err) {
+      console.warn('Could not load session matches', err);
+    } finally {
+      setIsLoadingRecent(false);
+    }
+  };
+
+  // Delete a match submission manually
+  const handleDeleteMatch = async (id: string) => {
+    try {
+      await deleteMatchSubmission(id);
+      setRecentMatches(prev => prev.filter(m => m.id !== id));
+      if (firebaseStatus?.id === id) {
+        setFirebaseStatus(null);
+      }
+    } catch (err) {
+      console.error('Failed to delete match from Firebase', err);
+    }
+  };
+
+  // Restore past calculation from 24-hour log
+  const handleRestoreMatch = (stored: StoredMatchSubmission) => {
+    setP1Details({
+      name: stored.partner1.name,
+      gender: stored.partner1.gender,
+      dob: stored.partner1.dob,
+      tob: stored.partner1.tob,
+      city: stored.partner1.city,
+      latitude: stored.partner1.latitude,
+      longitude: stored.partner1.longitude,
+      timezoneOffset: stored.partner1.timezoneOffset,
+      weightKg: 68,
+      weightUnit: 'kg',
+    });
+    setP1Hour(stored.partner1.hour || '08');
+    setP1Minute(stored.partner1.minute || '30');
+    setP1Period(stored.partner1.period || 'AM');
+    setP1TimeUnknown(false);
+
+    setP2Details({
+      name: stored.partner2.name,
+      gender: stored.partner2.gender,
+      dob: stored.partner2.dob,
+      tob: stored.partner2.tob,
+      city: stored.partner2.city,
+      latitude: stored.partner2.latitude,
+      longitude: stored.partner2.longitude,
+      timezoneOffset: stored.partner2.timezoneOffset,
+      weightKg: 54,
+      weightUnit: 'kg',
+    });
+    setP2Hour(stored.partner2.hour || '02');
+    setP2Minute(stored.partner2.minute || '15');
+    setP2Period(stored.partner2.period || 'PM');
+    setP2TimeUnknown(false);
+
+    const report = calculateVedAstroMatch(
+      { ...stored.partner1, weightKg: 68, weightUnit: 'kg' },
+      { ...stored.partner2, weightKg: 54, weightUnit: 'kg' }
+    );
+    setMatchReport(report);
+    setHasCalculated(true);
+
+    const expiresDate = stored.expiresAt?.toDate 
+      ? stored.expiresAt.toDate() 
+      : (stored.expiresAt?.seconds ? new Date(stored.expiresAt.seconds * 1000) : new Date(Date.now() + 24 * 3600 * 1000));
+    setFirebaseStatus({
+      id: stored.id,
+      expiresAtDate: expiresDate
+    });
+    setShowHistoryModal(false);
+  };
+
+  // Recalculate match report & sync to Firebase Firestore (24-hour TTL)
+  const handleCalculateMatch = async () => {
     // Format tob for partner 1
     let p1Tob = p1Details.tob;
     if (p1TimeUnknown || !p1Hour || !p1Minute) {
@@ -132,6 +233,54 @@ export const MatchFinder: React.FC<MatchFinderProps> = ({ onNavigateToTab, onOpe
     const report = calculateVedAstroMatch(updatedP1, updatedP2);
     setMatchReport(report);
     setHasCalculated(true);
+
+    // Persist to Firebase Firestore with 24-hour TTL
+    setIsSavingToFirebase(true);
+    setFirebaseError(null);
+    const submissionId = `match_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`;
+    try {
+      const res = await saveMatchSubmission({
+        id: submissionId,
+        partner1: {
+          name: updatedP1.name.trim() || 'Partner 1',
+          gender: updatedP1.gender,
+          dob: updatedP1.dob,
+          tob: p1Tob,
+          hour: p1Hour,
+          minute: p1Minute,
+          period: p1Period,
+          city: updatedP1.city,
+          latitude: Number(updatedP1.latitude) || 0,
+          longitude: Number(updatedP1.longitude) || 0,
+          timezoneOffset: Number(updatedP1.timezoneOffset) || 5.5,
+        },
+        partner2: {
+          name: updatedP2.name.trim() || 'Partner 2',
+          gender: updatedP2.gender,
+          dob: updatedP2.dob,
+          tob: p2Tob,
+          hour: p2Hour,
+          minute: p2Minute,
+          period: p2Period,
+          city: updatedP2.city,
+          latitude: Number(updatedP2.latitude) || 0,
+          longitude: Number(updatedP2.longitude) || 0,
+          timezoneOffset: Number(updatedP2.timezoneOffset) || 5.5,
+        },
+        ashtakootaScore: report.totalObtainedGunas,
+        maximumScore: 36,
+        compatibilityVerdict: report.summaryDescription || report.verdict,
+      });
+      setFirebaseStatus({
+        id: res.id,
+        expiresAtDate: res.expiresAtDate,
+      });
+    } catch (err) {
+      console.error('Failed to save match submission to Firebase', err);
+      setFirebaseError('Could not sync to cloud database. Local calculation is complete.');
+    } finally {
+      setIsSavingToFirebase(false);
+    }
   };
 
   // Preset loader
@@ -216,7 +365,7 @@ Calculated via GoodAstrology Match Finder`;
       {/* 1. HERO HEADER */}
       <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-stone-900 via-amber-950 to-stone-950 text-white p-6 sm:p-8 border border-amber-500/20 shadow-xl">
         <div className="absolute top-0 right-0 w-96 h-96 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
-        <div className="relative z-10 flex flex-col gap-4">
+        <div className="relative z-10 flex flex-col md:flex-row md:items-start md:justify-between gap-4">
           <div className="space-y-3 max-w-3xl">
             <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-amber-100 font-vedic tracking-tight leading-tight flex flex-wrap items-baseline gap-x-2.5 gap-y-1">
               <span>Kundali Match Finder</span>
@@ -228,6 +377,21 @@ Calculated via GoodAstrology Match Finder`;
               Calculate classical Vedic marriage compatibility across all 8 Ashtakoota dimensions (36 Gunas), 
               Manglik (Kuja) Dosha balancing, Rajju longevity, and deep astrological harmony.
             </p>
+          </div>
+
+          <div className="hidden flex-col sm:flex-row md:flex-col items-start md:items-end gap-2 shrink-0">
+            <button
+              type="button"
+              onClick={handleOpenHistory}
+              className="hidden px-3.5 py-2 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 border border-amber-400/40 text-amber-100 text-xs font-semibold items-center gap-2 transition-all shadow-sm active:scale-95 cursor-pointer backdrop-blur-xs"
+            >
+              <Database className="w-4 h-4 text-amber-300" />
+              <span>24h Cloud Records</span>
+            </button>
+            <span className="hidden text-[11px] text-amber-300/80 items-center gap-1.5 font-medium">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+              <span>Auto-deleted from Firebase in 24h</span>
+            </span>
           </div>
         </div>
 
@@ -877,6 +1041,65 @@ Calculated via GoodAstrology Match Finder`;
               <RotateCcw className="w-3.5 h-3.5 text-amber-800" />
               <span>Show Basic Info Guide</span>
             </button>
+          </div>
+
+          {/* Firebase 24-Hour TTL Status Banner */}
+          <div className="px-6 py-3 bg-stone-50 border-b border-stone-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+            <div className="flex items-center gap-2.5">
+              <div className="w-7 h-7 rounded-lg bg-amber-900/10 text-amber-900 flex items-center justify-center shrink-0">
+                <Database className="w-3.5 h-3.5 text-amber-800" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="font-bold text-stone-900">Stored on Firebase Server (24h Retention Rule)</span>
+                  {isSavingToFirebase ? (
+                    <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 font-semibold text-[10px] border border-amber-200 flex items-center gap-1">
+                      <RefreshCw className="w-3 h-3 animate-spin text-amber-800" />
+                      Saving to Cloud...
+                    </span>
+                  ) : firebaseStatus ? (
+                    <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-semibold text-[10px] border border-emerald-200 flex items-center gap-1">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                      TTL Auto-Deletion Active
+                    </span>
+                  ) : null}
+                </div>
+                <p className="text-[11px] text-stone-500 mt-0.5">
+                  Partner 1 &amp; 2 details (name, gender, birth date, AM/PM time, place) are retained for strictly 24 hours and then automatically purged.
+                  {firebaseStatus && (
+                    <span className="ml-1 text-amber-900 font-medium">
+                      Expires: {firebaseStatus.expiresAtDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}, {firebaseStatus.expiresAtDate.toLocaleDateString()}
+                    </span>
+                  )}
+                </p>
+                {firebaseError && (
+                  <p className="text-[11px] text-amber-800 mt-0.5 font-medium">{firebaseError}</p>
+                )}
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2 shrink-0 self-end sm:self-auto">
+              <button
+                type="button"
+                onClick={handleOpenHistory}
+                className="px-2.5 py-1.5 rounded-lg bg-white hover:bg-stone-100 text-stone-700 text-[11px] font-semibold border border-stone-300 flex items-center gap-1.5 transition-colors cursor-pointer shadow-2xs"
+                title="View your recent match submissions in the 24-hour retention window"
+              >
+                <Clock className="w-3 h-3 text-amber-800" />
+                <span>24h Log</span>
+              </button>
+              {firebaseStatus && (
+                <button
+                  type="button"
+                  onClick={() => handleDeleteMatch(firebaseStatus.id)}
+                  className="px-2.5 py-1.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 text-[11px] font-semibold border border-rose-200 flex items-center gap-1.5 transition-colors cursor-pointer shadow-2xs"
+                  title="Purge this calculation record from Firebase database now"
+                >
+                  <Trash2 className="w-3 h-3 text-rose-600" />
+                  <span>Purge from DB</span>
+                </button>
+              )}
+            </div>
           </div>
         
         {/* SCORE BANNER */}
@@ -1870,6 +2093,142 @@ Calculated via GoodAstrology Match Finder`;
                 className="px-5 py-2.5 rounded-xl bg-amber-900 hover:bg-amber-800 text-amber-50 font-bold text-xs shadow-xs cursor-pointer"
               >
                 Done &amp; Apply Location
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 24-HOUR CLOUD RECORDS MODAL */}
+      {showHistoryModal && (
+        <div className="fixed inset-0 z-50 bg-stone-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl max-w-2xl w-full max-h-[90vh] overflow-hidden flex flex-col shadow-2xl border border-amber-900/20 text-stone-900">
+            {/* Header */}
+            <div className="px-6 py-4 border-b border-stone-200 bg-stone-50 flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-xl bg-amber-900/10 text-amber-900 flex items-center justify-center">
+                  <Database className="w-4 h-4 text-amber-800" />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold font-vedic text-amber-950">24-Hour Firebase Cloud Records</h3>
+                  <p className="text-[11px] text-stone-500">
+                    Submissions are kept for strictly 24 hours on Google Firebase and automatically purged.
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowHistoryModal(false)}
+                className="p-2 rounded-xl text-stone-400 hover:text-stone-700 hover:bg-stone-200/60 transition-colors cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* List */}
+            <div className="p-6 overflow-y-auto space-y-4 flex-1">
+              <div className="p-3.5 rounded-2xl bg-amber-50/70 border border-amber-900/15 text-xs text-amber-950 flex items-start gap-2.5">
+                <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+                <div className="space-y-1 leading-relaxed">
+                  <p className="font-bold">Automated 24-Hour Time-to-Live (TTL) Policy</p>
+                  <p className="text-[11px] text-stone-600">
+                    Each match inquiry stores Partner 1 and Partner 2 data (name, gender, birth date, time with AM/PM, and place). Cloud Firestore enforces an exact 24-hour expiration ceiling (<code className="bg-stone-200/70 px-1 py-0.5 rounded text-[10px] font-mono">expiresAt</code>), after which records are automatically deleted from the server.
+                  </p>
+                </div>
+              </div>
+
+              {isLoadingRecent ? (
+                <div className="py-12 text-center text-stone-500 text-xs flex flex-col items-center gap-2">
+                  <RefreshCw className="w-5 h-5 animate-spin text-amber-800" />
+                  <span>Loading recent calculations from Firebase...</span>
+                </div>
+              ) : recentMatches.length === 0 ? (
+                <div className="py-12 text-center text-stone-500 space-y-2">
+                  <Clock className="w-8 h-8 text-stone-300 mx-auto" />
+                  <p className="text-sm font-semibold text-stone-700">No Calculations in 24h Window</p>
+                  <p className="text-xs text-stone-400 max-w-sm mx-auto">
+                    When you calculate a match, it will be listed here with its remaining lifetime before automated deletion.
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {recentMatches.map((item) => {
+                    const expiresDate = item.expiresAt?.toDate
+                      ? item.expiresAt.toDate()
+                      : (item.expiresAt?.seconds ? new Date(item.expiresAt.seconds * 1000) : new Date());
+                    const msLeft = Math.max(0, expiresDate.getTime() - Date.now());
+                    const hoursLeft = Math.floor(msLeft / (1000 * 60 * 60));
+                    const minsLeft = Math.floor((msLeft % (1000 * 60 * 60)) / (1000 * 60));
+
+                    return (
+                      <div
+                        key={item.id}
+                        className="p-4 rounded-2xl border border-stone-200 bg-stone-50/50 hover:bg-stone-50 transition-colors flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+                      >
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="text-sm font-bold text-amber-950 font-vedic">
+                              {item.partner1.name} &amp; {item.partner2.name}
+                            </span>
+                            <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-amber-100 text-amber-900 border border-amber-200">
+                              {item.ashtakootaScore} / 36 Gunas
+                            </span>
+                          </div>
+
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1 text-[11px] text-stone-600">
+                            <div>
+                              <strong className="text-stone-700">P1 ({item.partner1.gender}):</strong> {item.partner1.dob} at {item.partner1.hour}:{item.partner1.minute} {item.partner1.period} • {item.partner1.city}
+                            </div>
+                            <div>
+                              <strong className="text-stone-700">P2 ({item.partner2.gender}):</strong> {item.partner2.dob} at {item.partner2.hour}:{item.partner2.minute} {item.partner2.period} • {item.partner2.city}
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-2 text-[10px] text-stone-500 font-mono">
+                            <span className="flex items-center gap-1 text-emerald-700 font-semibold">
+                              <Clock className="w-3 h-3 text-emerald-600" />
+                              Auto-purges in {hoursLeft}h {minsLeft}m
+                            </span>
+                            <span>•</span>
+                            <span>ID: {item.id}</span>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-2 shrink-0 self-end sm:self-center">
+                          <button
+                            type="button"
+                            onClick={() => handleRestoreMatch(item)}
+                            className="px-3 py-1.5 rounded-xl bg-amber-900 hover:bg-amber-800 text-amber-50 font-semibold text-xs transition-colors cursor-pointer shadow-xs"
+                          >
+                            Restore
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteMatch(item.id)}
+                            className="p-1.5 rounded-xl text-stone-400 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer border border-transparent hover:border-rose-200"
+                            title="Delete now"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            {/* Footer */}
+            <div className="px-6 py-3.5 bg-stone-50 border-t border-stone-200 flex items-center justify-between">
+              <span className="text-[11px] text-stone-500">
+                Independent of domain changes — stored in project cloud database
+              </span>
+              <button
+                type="button"
+                onClick={() => setShowHistoryModal(false)}
+                className="px-4 py-2 rounded-xl bg-stone-200 hover:bg-stone-300 text-stone-800 font-bold text-xs cursor-pointer transition-colors"
+              >
+                Close
               </button>
             </div>
           </div>

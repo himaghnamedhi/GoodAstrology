@@ -316,7 +316,6 @@ export const KundliGenerator: React.FC<KundliGeneratorProps> = ({
   const [citySearchQuery, setCitySearchQuery] = useState<string>('');
   const [isCityDropdownOpen, setIsCityDropdownOpen] = useState<boolean>(false);
   const [cityFilterTab, setCityFilterTab] = useState<'all' | 'assam' | 'india' | 'world'>('all');
-  const [showAdvancedCoords, setShowAdvancedCoords] = useState<boolean>(false);
   const [showEditForm, setShowEditForm] = useState<boolean>(false);
   const [isMapModalOpen, setIsMapModalOpen] = useState<boolean>(false);
   const [isFamousModalOpen, setIsFamousModalOpen] = useState<boolean>(false);
@@ -952,62 +951,6 @@ export const KundliGenerator: React.FC<KundliGeneratorProps> = ({
                   <span>Choose from Map</span>
                 </button>
               </div>
-
-              {/* Coordinates status & Manual Coordinate entry toggle */}
-              <div className="pt-1 flex flex-wrap items-center justify-between gap-2 text-xs text-stone-500">
-                <div className="flex items-center gap-2">
-                  <span className="font-mono text-[11px] text-stone-700 bg-stone-100 px-2.5 py-1 rounded-lg border border-stone-200">
-                    {formatCoordinates(birthDetails.latitude, birthDetails.longitude)} • UTC {birthDetails.timezoneOffset >= 0 ? `+${birthDetails.timezoneOffset}` : birthDetails.timezoneOffset}
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => setShowAdvancedCoords(!showAdvancedCoords)}
-                    className="text-[11px] text-amber-800 hover:underline font-medium cursor-pointer"
-                  >
-                    {showAdvancedCoords ? 'Hide Manual Lat/Long' : 'Custom Lat/Long'}
-                  </button>
-                </div>
-
-                <span className="text-[11px] text-stone-400 hidden sm:inline">
-                  Exact coordinates determine Ascendant sign &amp; degree
-                </span>
-              </div>
-
-              {/* Advanced Numerical Coordinates (Collapsible, clean) */}
-              {showAdvancedCoords && (
-                <div className="p-3.5 bg-stone-50 rounded-xl border border-stone-200 grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs animate-in fade-in duration-150">
-                  <div>
-                    <label className="block text-stone-600 font-semibold mb-1">Latitude (°N/S)</label>
-                    <input
-                      type="number"
-                      step="0.0001"
-                      value={birthDetails.latitude}
-                      onChange={(e) => setBirthDetails({ ...birthDetails, latitude: parseFloat(e.target.value) || 0 })}
-                      className="w-full h-8 px-2.5 rounded-lg border border-stone-300 text-xs bg-white focus:border-amber-700"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-stone-600 font-semibold mb-1">Longitude (°E/W)</label>
-                    <input
-                      type="number"
-                      step="0.0001"
-                      value={birthDetails.longitude}
-                      onChange={(e) => setBirthDetails({ ...birthDetails, longitude: parseFloat(e.target.value) || 0 })}
-                      className="w-full h-8 px-2.5 rounded-lg border border-stone-300 text-xs bg-white focus:border-amber-700"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-stone-600 font-semibold mb-1">Timezone (UTC Offset)</label>
-                    <input
-                      type="number"
-                      step="0.5"
-                      value={birthDetails.timezoneOffset}
-                      onChange={(e) => setBirthDetails({ ...birthDetails, timezoneOffset: parseFloat(e.target.value) || 5.5 })}
-                      className="w-full h-8 px-2.5 rounded-lg border border-stone-300 text-xs bg-white focus:border-amber-700"
-                    />
-                  </div>
-                </div>
-              )}
             </div>
 
             {/* Submit Action Button */}

@@ -1,0 +1,64 @@
+{
+  "entities": {
+    "MatchSubmission": {
+      "title": "MatchSubmission",
+      "description": "Vedic Kundli Match Finder calculation record stored for 24 hours with automatic expiration.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the match record",
+          "maxLength": 128
+        },
+        "partner1": {
+          "type": "object",
+          "description": "Partner 1 details including name, gender, dob, tob with AM/PM, and place of birth"
+        },
+        "partner2": {
+          "type": "object",
+          "description": "Partner 2 details including name, gender, dob, tob with AM/PM, and place of birth"
+        },
+        "ashtakootaScore": {
+          "type": "number",
+          "description": "Calculated Vedic Guna Milan score out of 36"
+        },
+        "maximumScore": {
+          "type": "number",
+          "description": "Maximum achievable Guna score (36)"
+        },
+        "compatibilityVerdict": {
+          "type": "string",
+          "description": "Overall compatibility recommendation",
+          "maxLength": 200
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Record creation timestamp"
+        },
+        "expiresAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Expiration timestamp exactly 24 hours after creation for automated TTL deletion"
+        },
+        "sessionId": {
+          "type": "string",
+          "description": "Client session identifier for querying recent match records",
+          "maxLength": 128
+        }
+      },
+      "required": [
+        "partner1",
+        "partner2",
+        "createdAt",
+        "expiresAt"
+      ]
+    }
+  },
+  "firestore": {
+    "/matchSubmissions/{matchId}": {
+      "schema": "MatchSubmission",
+      "description": "Temporary 24-hour collection of partner matching submissions with automated TTL policy."
+    }
+  }
+}

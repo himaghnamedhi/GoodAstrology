@@ -62,11 +62,11 @@ export const KundliChart: React.FC<KundliChartProps> = ({
   return (
     <div className="space-y-6">
       {/* Top Controls & Category Filters */}
-      <div className="bg-white rounded-2xl p-4 sm:p-5 border border-amber-900/10 shadow-xs flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <h2 className="text-xl font-bold text-amber-950 font-vedic flex items-center gap-2">
-            <Compass className="w-5 h-5 text-amber-700" />
-            Interactive Vedic Kundli House Chart (भाव चक्र)
+      <div className="bg-white rounded-2xl p-4 sm:p-5 border border-amber-900/10 shadow-xs flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-left">
+        <div className="w-full sm:w-auto">
+          <h2 className="text-xl font-bold text-amber-950 font-vedic flex items-center justify-center sm:justify-start gap-2">
+            <Compass className="w-5 h-5 text-amber-700 shrink-0" />
+            <span>Interactive Vedic Kundli House Chart (भाव चक्र)</span>
           </h2>
           <p className="text-xs text-stone-600 mt-0.5">
             Click on any house in the chart to identify its position, Sanskrit Bhava name, life significations, and planetary rules.
@@ -74,8 +74,8 @@ export const KundliChart: React.FC<KundliChartProps> = ({
         </div>
 
         {/* View Options & Chart Toggle */}
-        <div className="flex flex-wrap items-center gap-2 text-xs">
-          <div className="flex items-center bg-stone-100 p-1 rounded-xl border border-stone-200">
+        <div className="flex flex-wrap items-center justify-center sm:justify-end gap-2 text-xs w-full sm:w-auto">
+          <div className="flex items-center justify-center bg-stone-100 p-1 rounded-xl border border-stone-200">
             <button
               id="btn-north-chart"
               onClick={() => setChartStyle('north')}
@@ -96,7 +96,7 @@ export const KundliChart: React.FC<KundliChartProps> = ({
             </button>
           </div>
 
-          <div className="flex items-center bg-stone-100 p-1 rounded-xl border border-stone-200">
+          <div className="flex items-center justify-center bg-stone-100 p-1 rounded-xl border border-stone-200">
             <span className="text-[11px] font-semibold text-stone-500 px-2">Label:</span>
             <button
               onClick={() => setDisplayMode('houseNumber')}
@@ -128,7 +128,7 @@ export const KundliChart: React.FC<KundliChartProps> = ({
             <button
               id="btn-chart-print-report"
               onClick={onOpenReport}
-              className="px-3 py-1.5 rounded-xl bg-amber-900 hover:bg-amber-950 text-amber-50 shadow-xs text-xs font-bold flex items-center gap-1.5 transition-all active:scale-95"
+              className="px-3 py-1.5 rounded-xl bg-amber-900 hover:bg-amber-950 text-amber-50 shadow-xs text-xs font-bold flex items-center justify-center gap-1.5 transition-all active:scale-95"
               title="Print full horoscope report"
             >
               <Printer className="w-3.5 h-3.5 text-amber-300" />
@@ -402,9 +402,9 @@ export const KundliChart: React.FC<KundliChartProps> = ({
             <div className="w-full h-full bg-white rounded-3xl p-5 sm:p-6 border border-amber-900/15 shadow-sm flex flex-col justify-between space-y-4">
               
               {/* Header of Selected House */}
-              <div className="flex items-start justify-between border-b border-stone-200 pb-3.5">
-                <div>
-                  <div className="flex items-center gap-2">
+              <div className="flex flex-col sm:flex-row items-center sm:items-start justify-between border-b border-stone-200 pb-3.5 gap-2 text-center sm:text-left">
+                <div className="flex flex-col items-center sm:items-start">
+                  <div className="flex items-center justify-center sm:justify-start gap-2">
                     <span className="px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-900 font-bold text-xs border border-amber-300">
                       {getOrdinal(activeHouseData.number)} House
                     </span>
@@ -412,21 +412,21 @@ export const KundliChart: React.FC<KundliChartProps> = ({
                       {activeHouseData.svgRegion}
                     </span>
                   </div>
-                  <h3 className="text-xl font-bold text-amber-950 mt-1 font-vedic">
+                  <h3 className="text-xl font-bold text-amber-950 mt-1 font-vedic text-center sm:text-left">
                     {activeHouseData.sanskritName}
                   </h3>
-                  <p className="text-xs text-stone-600 font-medium">{activeHouseData.name}</p>
+                  <p className="text-xs text-stone-600 font-medium text-center sm:text-left">{activeHouseData.name}</p>
                 </div>
 
-                <div className="text-right">
-                  <span className="text-xs px-2 py-1 rounded-md bg-stone-100 font-semibold text-stone-700">
+                <div className="text-center sm:text-right">
+                  <span className="text-xs px-2 py-1 rounded-md bg-stone-100 font-semibold text-stone-700 inline-block">
                     Sign: {activeHouseData.naturalSign}
                   </span>
                 </div>
               </div>
 
               {/* Classification Badges */}
-              <div className="flex flex-wrap gap-1.5 text-xs">
+              <div className="flex flex-wrap justify-center sm:justify-start gap-1.5 text-xs">
                 {activeHouseData.classification.subCategories.map((cat, i) => (
                   <span key={i} className="px-2 py-0.5 rounded-md bg-amber-50 text-amber-800 font-medium border border-amber-200/70">
                     {cat}
@@ -435,7 +435,7 @@ export const KundliChart: React.FC<KundliChartProps> = ({
               </div>
 
               {/* Description */}
-              <p className="text-xs leading-relaxed text-stone-700">
+              <p className="text-xs leading-relaxed text-stone-700 text-justify sm:text-left hyphens-auto">
                 {activeHouseData.description}
               </p>
 
