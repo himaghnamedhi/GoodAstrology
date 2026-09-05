@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100%" height="100%">
+  <defs>
+    <linearGradient id="chartBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fffbeb" />
+      <stop offset="100%" stop-color="#fef3c7" />
+    </linearGradient>
+    <linearGradient id="goldStroke" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#b45309" />
+      <stop offset="50%" stop-color="#d97706" />
+      <stop offset="100%" stop-color="#78350f" />
+    </linearGradient>
+    <linearGradient id="centerBadge" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#92400e" />
+      <stop offset="100%" stop-color="#451a03" />
+    </linearGradient>
+  </defs>
+
+  <rect x="2" y="2" width="96" height="96" rx="20" fill="url(#chartBg)" stroke="#fcd34d" stroke-width="1.5" />
+  
+  <!-- Outer Vedic Square -->
+  <rect x="15" y="15" width="70" height="70" fill="#fff" stroke="url(#goldStroke)" stroke-width="2" rx="2" />
+  
+  <!-- Diagonal X lines -->
+  <line x1="15" y1="15" x2="85" y2="85" stroke="url(#goldStroke)" stroke-width="1.8" />
+  <line x1="85" y1="15" x2="15" y2="85" stroke="url(#goldStroke)" stroke-width="1.8" />
+  
+  <!-- Central Diamond (Houses 1, 4, 7, 10 Kendras) -->
+  <polygon points="50,15 85,50 50,85 15,50" fill="#fef9c3" fill-opacity="0.8" stroke="url(#goldStroke)" stroke-width="2" />
+
+  <!-- Inner Center Star Emblem -->
+  <circle cx="50" cy="50" r="12" fill="url(#centerBadge)" stroke="#f59e0b" stroke-width="1.5" />
+  <polygon points="50,42 53,48 59,50 53,52 50,58 47,52 41,50 47,48" fill="#fef08a" />
+
+  <!-- Corner Planetary Marks -->
+  <circle cx="32" cy="32" r="3" fill="#b45309" />
+  <circle cx="68" cy="32" r="3" fill="#b45309" />
+  <circle cx="32" cy="68" r="3" fill="#b45309" />
+  <circle cx="68" cy="68" r="3" fill="#b45309" />
+</svg>

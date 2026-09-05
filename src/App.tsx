@@ -3,15 +3,17 @@ import { HouseNumber, PlanetId, ChartStyle } from './types/astrology';
 import { Header } from './components/Header';
 import { KundliChart } from './components/KundliChart';
 import { KundliBuilder } from './components/KundliBuilder';
+import { KundliGenerator } from './components/KundliGenerator';
 import { GemstoneRecommender } from './components/GemstoneRecommender';
 import { MatchFinder } from './components/MatchFinder';
 import { SearchModal } from './components/SearchModal';
 import { CustomReportModal } from './components/CustomReportModal';
+import { CompleteKundliData } from './data/vedicEphemeris';
 import { HOUSES_DATA } from './data/housesData';
 import { Sparkles, Layers, ArrowUp } from 'lucide-react';
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState<'chart' | 'builder' | 'gemstones' | 'match'>('chart');
+  const [activeTab, setActiveTab] = useState<'generator' | 'chart' | 'builder' | 'gemstones' | 'match'>('generator');
   const [selectedHouse, setSelectedHouse] = useState<HouseNumber>(1);
   const [selectedPlanet, setSelectedPlanet] = useState<PlanetId>('sun');
   const [chartStyle, setChartStyle] = useState<ChartStyle>('north');
@@ -35,10 +37,13 @@ export default function App() {
   const [reportType, setReportType] = useState<'kundli' | 'match' | 'gemstone'>('kundli');
   const [reportMatchData, setReportMatchData] = useState<{ report?: any; p1?: any; p2?: any }>({});
   const [reportGemstoneData, setReportGemstoneData] = useState<{ lagna?: number; profile?: any; name?: string }>({});
+  const [reportKundliData, setReportKundliData] = useState<CompleteKundliData | null>(null);
 
   const handleOpenReport = (type: 'kundli' | 'match' | 'gemstone' = 'kundli', data?: any) => {
     setReportType(type);
-    if (type === 'match' && data) {
+    if (type === 'kundli' && data) {
+      setReportKundliData(data);
+    } else if (type === 'match' && data) {
       setReportMatchData(data);
     } else if (type === 'gemstone' && data) {
       setReportGemstoneData(data);
@@ -85,6 +90,16 @@ export default function App() {
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-8">
         
         {/* Dynamic Content Views based on activeTab */}
+        {activeTab === 'generator' && (
+          <KundliGenerator
+            onOpenReportModal={(kData) => handleOpenReport('kundli', kData)}
+            onApplyPlacementsToBuilder={(placements) => {
+              setCustomPlacements(placements);
+              setActiveTab('chart');
+            }}
+          />
+        )}
+
         {activeTab === 'chart' && (
           <div className="space-y-8">
             {/* House Chart Interactive Visualizer */}
@@ -154,13 +169,25 @@ export default function App() {
                 <li>
                   <button
                     onClick={() => {
-                      setActiveTab('builder');
+                      setActiveTab('generator');
                       scrollToTop();
                     }}
-                    className="text-stone-200 hover:text-amber-400 font-medium flex items-center gap-1.5 transition-colors group cursor-pointer"
+                    className="text-stone-300 hover:text-amber-400 font-medium flex items-center gap-1.5 transition-colors group cursor-pointer"
                   >
                     <span className="text-amber-400 group-hover:translate-x-0.5 transition-transform">1.</span>
-                    <span>Kundli Reader</span>
+                    <span>Kundali Generator</span>
+                  </button>
+                </li>
+                <li>
+                  <button
+                    onClick={() => {
+                      setActiveTab('chart');
+                      scrollToTop();
+                    }}
+                    className="text-stone-300 hover:text-amber-400 font-medium flex items-center gap-1.5 transition-colors group cursor-pointer"
+                  >
+                    <span className="text-amber-400 group-hover:translate-x-0.5 transition-transform">2.</span>
+                    <span>House Chart</span>
                   </button>
                 </li>
                 <li>
@@ -169,9 +196,9 @@ export default function App() {
                       setActiveTab('gemstones');
                       scrollToTop();
                     }}
-                    className="text-stone-200 hover:text-amber-400 font-medium flex items-center gap-1.5 transition-colors group cursor-pointer"
+                    className="text-stone-300 hover:text-amber-400 font-medium flex items-center gap-1.5 transition-colors group cursor-pointer"
                   >
-                    <span className="text-amber-400 group-hover:translate-x-0.5 transition-transform">2.</span>
+                    <span className="text-amber-400 group-hover:translate-x-0.5 transition-transform">3.</span>
                     <span>Find Gemstone You Need</span>
                   </button>
                 </li>
@@ -181,22 +208,23 @@ export default function App() {
                       setActiveTab('match');
                       scrollToTop();
                     }}
-                    className="text-stone-200 hover:text-amber-400 font-medium flex items-center gap-1.5 transition-colors group cursor-pointer"
+                    className="text-stone-300 hover:text-amber-400 font-medium flex items-center gap-1.5 transition-colors group cursor-pointer"
                   >
-                    <span className="text-amber-400 group-hover:translate-x-0.5 transition-transform">3.</span>
-                    <span className="font-semibold text-amber-200">Match Finder</span>
-                    <span className="text-[9px] px-1.5 py-0.2 rounded bg-amber-900/80 text-amber-200 border border-amber-500/40 font-bold">New</span>
+                    <span className="text-amber-400 group-hover:translate-x-0.5 transition-transform">4.</span>
+                    <span>Match Finder</span>
                   </button>
                 </li>
-                <li className="flex items-center gap-1.5 text-stone-500 cursor-not-allowed">
-                  <span>•</span>
-                  <span>Dasha & Antardasha Calculator</span>
-                  <span className="text-[9.5px] px-1.5 py-0.2 rounded bg-stone-800 text-stone-400 border border-stone-700 font-medium">Coming Soon</span>
-                </li>
-                <li className="flex items-center gap-1.5 text-stone-500 cursor-not-allowed">
-                  <span>•</span>
-                  <span>Transit & Sade Sati Tracker</span>
-                  <span className="text-[9.5px] px-1.5 py-0.2 rounded bg-stone-800 text-stone-400 border border-stone-700 font-medium">Coming Soon</span>
+                <li>
+                  <button
+                    onClick={() => {
+                      setActiveTab('builder');
+                      scrollToTop();
+                    }}
+                    className="text-stone-300 hover:text-amber-400 font-medium flex items-center gap-1.5 transition-colors group cursor-pointer"
+                  >
+                    <span className="text-amber-400 group-hover:translate-x-0.5 transition-transform">5.</span>
+                    <span>Kundli Reader</span>
+                  </button>
                 </li>
               </ul>
             </div>
@@ -252,6 +280,7 @@ export default function App() {
         initialReportType={reportType}
         placements={customPlacements}
         chartStyle={chartStyle}
+        initialKundliData={reportKundliData}
         initialMatchReport={reportMatchData.report}
         initialP1Details={reportMatchData.p1}
         initialP2Details={reportMatchData.p2}

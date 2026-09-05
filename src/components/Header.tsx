@@ -3,8 +3,8 @@ import { Sparkles, Compass, Search, Share2, Gem, Heart } from 'lucide-react';
 import { ChartStyle } from '../types/astrology';
 
 interface HeaderProps {
-  activeTab: 'chart' | 'builder' | 'gemstones' | 'match';
-  setActiveTab: (tab: 'chart' | 'builder' | 'gemstones' | 'match') => void;
+  activeTab: 'generator' | 'chart' | 'builder' | 'gemstones' | 'match';
+  setActiveTab: (tab: 'generator' | 'chart' | 'builder' | 'gemstones' | 'match') => void;
   chartStyle: ChartStyle;
   setChartStyle: (style: ChartStyle) => void;
   onOpenSearch: () => void;
@@ -33,69 +33,92 @@ export const Header: React.FC<HeaderProps> = ({
           
           {/* Brand Logo */}
           <div className="flex items-center gap-2.5 sm:gap-3 cursor-pointer shrink-0" onClick={() => setActiveTab('chart')}>
-            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-br from-amber-600 via-amber-700 to-amber-900 flex items-center justify-center shadow-md text-amber-100 ring-2 ring-amber-400/30 shrink-0">
-              <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 text-amber-200" />
+            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl shadow-md ring-2 ring-amber-500/40 overflow-hidden shrink-0 bg-[#351508]">
+              <img
+                src="/icons/app_logo.svg"
+                alt="GoodAstrology Logo"
+                className="w-full h-full object-cover"
+                referrerPolicy="no-referrer"
+              />
             </div>
             <div>
               <div className="flex items-baseline gap-1.5">
                 <span className="text-xl sm:text-2xl font-extrabold tracking-tight text-amber-950 font-vedic leading-tight">GoodAstrology</span>
               </div>
-              <p className="text-[11px] text-stone-500 hidden sm:block">Vedic Astrology House Charts, Kundli Reader & Gemstone Recommendations</p>
+              <p className="text-[11px] text-stone-500 font-medium tracking-wide hidden sm:block">Vedic Astrology &amp; Horoscopes</p>
             </div>
           </div>
 
           {/* Desktop Navigation Tabs */}
-          <nav className="hidden md:flex items-center gap-1 bg-stone-200/60 p-1 rounded-xl border border-stone-300/70 text-sm font-medium">
+          <nav className="hidden md:flex items-center gap-0.5 lg:gap-1 bg-stone-200/60 p-1 rounded-xl border border-stone-300/70 text-xs lg:text-sm font-medium shrink-0">
+            <button
+              id="nav-tab-generator"
+              onClick={() => setActiveTab('generator')}
+              className={`px-2.5 lg:px-3.5 py-1.5 lg:py-2 rounded-lg transition-all flex items-center gap-1.5 lg:gap-2 whitespace-nowrap ${
+                activeTab === 'generator'
+                  ? 'bg-amber-900 text-amber-50 shadow-xs font-semibold'
+                  : 'text-stone-700 hover:text-stone-900 hover:bg-stone-100'
+              }`}
+            >
+              <img
+                src="/icons/app_logo.svg"
+                alt="Kundali Generator"
+                className="w-4 h-4 rounded-xs shrink-0 object-cover"
+                referrerPolicy="no-referrer"
+              />
+              <span>Kundali Generator</span>
+            </button>
+
             <button
               id="nav-tab-chart"
               onClick={() => setActiveTab('chart')}
-              className={`px-3.5 py-2 rounded-lg transition-all flex items-center gap-2 ${
+              className={`px-2.5 lg:px-3.5 py-1.5 lg:py-2 rounded-lg transition-all flex items-center gap-1.5 lg:gap-2 whitespace-nowrap ${
                 activeTab === 'chart'
                   ? 'bg-amber-900 text-amber-50 shadow-xs font-semibold'
                   : 'text-stone-700 hover:text-stone-900 hover:bg-stone-100'
               }`}
             >
-              <Compass className="w-4 h-4" />
+              <Compass className="w-3.5 h-3.5 lg:w-4 lg:h-4 shrink-0" />
               <span>House Chart</span>
-            </button>
-
-            <button
-              id="nav-tab-builder"
-              onClick={() => setActiveTab('builder')}
-              className={`px-3.5 py-2 rounded-lg transition-all flex items-center gap-2 ${
-                activeTab === 'builder'
-                  ? 'bg-amber-900 text-amber-50 shadow-xs font-semibold'
-                  : 'text-stone-700 hover:text-stone-900 hover:bg-stone-100'
-              }`}
-            >
-              <Sparkles className="w-4 h-4" />
-              <span>Kundli Reader</span>
             </button>
 
             <button
               id="nav-tab-gemstones"
               onClick={() => setActiveTab('gemstones')}
-              className={`px-3.5 py-2 rounded-lg transition-all flex items-center gap-2 ${
+              className={`px-2.5 lg:px-3.5 py-1.5 lg:py-2 rounded-lg transition-all flex items-center gap-1.5 lg:gap-2 whitespace-nowrap ${
                 activeTab === 'gemstones'
                   ? 'bg-amber-900 text-amber-50 shadow-xs font-semibold'
                   : 'text-stone-700 hover:text-stone-900 hover:bg-stone-100'
               }`}
             >
-              <Gem className="w-4 h-4" />
+              <Gem className="w-3.5 h-3.5 lg:w-4 lg:h-4 shrink-0" />
               <span>Gemstones</span>
             </button>
 
             <button
               id="nav-tab-match"
               onClick={() => setActiveTab('match')}
-              className={`px-3.5 py-2 rounded-lg transition-all flex items-center gap-2 ${
+              className={`px-2.5 lg:px-3.5 py-1.5 lg:py-2 rounded-lg transition-all flex items-center gap-1.5 lg:gap-2 whitespace-nowrap ${
                 activeTab === 'match'
                   ? 'bg-amber-900 text-amber-50 shadow-xs font-semibold'
                   : 'text-stone-700 hover:text-stone-900 hover:bg-stone-100'
               }`}
             >
-              <Heart className="w-4 h-4 text-rose-500 fill-rose-500/30" />
+              <Heart className="w-3.5 h-3.5 lg:w-4 lg:h-4 text-rose-500 fill-rose-500/30 shrink-0" />
               <span>Match Finder</span>
+            </button>
+
+            <button
+              id="nav-tab-builder"
+              onClick={() => setActiveTab('builder')}
+              className={`px-2.5 lg:px-3.5 py-1.5 lg:py-2 rounded-lg transition-all flex items-center gap-1.5 lg:gap-2 whitespace-nowrap ${
+                activeTab === 'builder'
+                  ? 'bg-amber-900 text-amber-50 shadow-xs font-semibold'
+                  : 'text-stone-700 hover:text-stone-900 hover:bg-stone-100'
+              }`}
+            >
+              <Compass className="w-3.5 h-3.5 lg:w-4 lg:h-4 shrink-0" />
+              <span>Kundli Reader</span>
             </button>
           </nav>
 
@@ -126,10 +149,11 @@ export const Header: React.FC<HeaderProps> = ({
         {/* Mobile Navigation Row */}
         <div className="flex md:hidden overflow-x-auto py-2.5 gap-2 border-t border-stone-200/80 no-scrollbar -mx-4 px-4">
           {[
+            { id: 'generator', label: 'Kundali Generator', icon: Sparkles },
             { id: 'chart', label: 'House Chart', icon: Compass },
-            { id: 'builder', label: 'Kundli Reader', icon: Sparkles },
             { id: 'gemstones', label: 'Gemstones', icon: Gem },
             { id: 'match', label: 'Match Finder', icon: Heart },
+            { id: 'builder', label: 'Kundli Reader', icon: Compass },
           ].map((item) => {
             const Icon = item.icon;
             const isActive = activeTab === item.id;

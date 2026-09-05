@@ -28,7 +28,8 @@ import {
   RotateCcw,
   Search,
   Globe,
-  FileText
+  FileText,
+  BookOpen
 } from 'lucide-react';
 import { 
   NAVARATNA_DATA, 
@@ -99,7 +100,8 @@ export const GemstoneRecommender: React.FC<GemstoneRecommenderProps> = ({
     }
   };
   
-  // Birth Details State
+  // Birth Details State & Calculation Visibility State
+  const [hasCalculated, setHasCalculated] = useState<boolean>(false);
   const [birthDetails, setBirthDetails] = useState<BirthDetails>({
     name: '',
     gender: 'male',
@@ -228,6 +230,7 @@ export const GemstoneRecommender: React.FC<GemstoneRecommenderProps> = ({
     setSelectedLagna(profile.lagnaNumber);
     setNativeName(birthDetails.name || 'Native');
     setBodyWeightKg(profile.bodyWeightKg);
+    setHasCalculated(true);
   };
 
   const getElementIcon = (elem: string) => {
@@ -803,18 +806,49 @@ export const GemstoneRecommender: React.FC<GemstoneRecommenderProps> = ({
                 <Scale className="w-4 h-4 text-amber-800 shrink-0" />
                 <span>Includes personalized gemstone dosage calculation by constitutional body weight.</span>
               </div>
-              <button
-                onClick={handleCalculateBirthChart}
-                className="px-6 py-3 rounded-xl bg-amber-900 hover:bg-amber-950 text-amber-50 font-bold text-sm flex items-center gap-2 shadow-md transition-all active:scale-95 cursor-pointer"
-              >
-                <Sparkles className="w-4 h-4 text-amber-300" />
-                <span>Calculate My Gemstones</span>
-              </button>
+              <div className="flex items-center gap-2">
+                {hasCalculated && (
+                  <button
+                    type="button"
+                    onClick={() => setHasCalculated(false)}
+                    className="px-4 py-3 rounded-xl bg-white hover:bg-stone-100 text-stone-700 border border-stone-300 font-semibold text-sm flex items-center gap-1.5 shadow-xs transition-all active:scale-95 cursor-pointer"
+                  >
+                    <RotateCcw className="w-4 h-4 text-stone-600" />
+                    <span>View Basic Info</span>
+                  </button>
+                )}
+                <button
+                  onClick={handleCalculateBirthChart}
+                  className="px-6 py-3 rounded-xl bg-amber-900 hover:bg-amber-950 text-amber-50 font-bold text-sm flex items-center gap-2 shadow-md transition-all active:scale-95 cursor-pointer"
+                >
+                  <Sparkles className="w-4 h-4 text-amber-300" />
+                  <span>{hasCalculated ? 'Recalculate My Gemstones' : 'Calculate My Gemstones'}</span>
+                </button>
+              </div>
             </div>
           </div>
 
-          {/* Calculated Astrological Profile Strip */}
-          <div className="bg-[#FAF8F5] rounded-2xl border border-amber-900/15 p-6 space-y-4">
+          {/* If calculated, show the Astrological Profile & Prescribed Stones; Otherwise show Basic Gemstone Information */}
+          {hasCalculated ? (
+            <div className="space-y-8 animate-fadeIn">
+              {/* Calculation Status Confirmation Banner */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-2xl bg-amber-50/90 border border-amber-900/15 text-xs text-amber-950 shadow-2xs">
+                <div className="flex items-center gap-2 font-medium">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                  <span>Personalized Vedic Gemstone Prescription calculated for <strong>{birthDetails.name || 'Native'}</strong></span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setHasCalculated(false)}
+                  className="px-3 py-1.5 rounded-xl bg-white hover:bg-amber-100/80 border border-amber-900/20 text-stone-800 text-xs font-semibold flex items-center gap-1.5 transition-all shadow-2xs active:scale-95 cursor-pointer self-start sm:self-auto"
+                >
+                  <RotateCcw className="w-3.5 h-3.5 text-amber-800" />
+                  <span>Back to Basic Information</span>
+                </button>
+              </div>
+
+              {/* Calculated Astrological Profile Strip */}
+              <div className="bg-[#FAF8F5] rounded-2xl border border-amber-900/15 p-6 space-y-4">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-stone-200/70">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-amber-900 text-amber-50 flex items-center justify-center font-bold text-lg font-vedic shadow-sm">
@@ -1243,6 +1277,186 @@ export const GemstoneRecommender: React.FC<GemstoneRecommenderProps> = ({
               ))}
             </div>
           </div>
+
+            </div>
+          ) : (
+            <div className="space-y-8 animate-fadeIn">
+              {/* Basic Gemstone Information Header */}
+              <div className="bg-white rounded-3xl border border-amber-900/15 p-6 sm:p-8 shadow-xs space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-stone-100">
+                  <div className="space-y-1">
+                    <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-100/70 text-amber-900 text-xs font-semibold uppercase tracking-wider">
+                      <BookOpen className="w-3.5 h-3.5 text-amber-800" />
+                      <span>Foundational Ratna Shastra</span>
+                    </div>
+                    <h2 className="text-xl sm:text-2xl font-bold text-amber-950 font-vedic">
+                      Basic Gemstone Information (नवग्रह रत्न परिचय)
+                    </h2>
+                    <p className="text-xs sm:text-sm text-stone-600 max-w-3xl leading-relaxed">
+                      In Vedic astrology, natural gemstones act as cosmic prisms that channel and amplify beneficial planetary frequencies (Prana) into the subtle human energy field. Enter your birth details in the form above and click <strong>"Calculate My Gemstones"</strong> to generate your personalized Kundli prescription, or explore the sacred gemstones and foundational Jyotish guidelines below.
+                    </p>
+                  </div>
+                </div>
+
+                {/* The 3 Core Pillars of Vedic Astrological Gemstones */}
+                <div className="pt-2">
+                  <h3 className="text-sm font-bold uppercase tracking-wider text-stone-700 font-vedic mb-3 flex items-center gap-2">
+                    <Crown className="w-4 h-4 text-amber-800" />
+                    <span>The 3 Pillars of Astrological Gemstones (रत्न प्रकार)</span>
+                  </h3>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    {/* 1. Life Stone */}
+                    <div className="p-5 rounded-2xl bg-[#FAF8F5] border border-amber-900/15 shadow-2xs space-y-2.5">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-amber-100 text-amber-900 border border-amber-300/60">
+                          1st House (Lagna Bhava)
+                        </span>
+                        <Shield className="w-4 h-4 text-amber-800" />
+                      </div>
+                      <h4 className="text-base font-bold text-amber-950 font-vedic">
+                        Life Stone (Lagna Ratna)
+                      </h4>
+                      <p className="text-xs text-stone-600 leading-relaxed">
+                        Belongs to your Ascendant (Lagna) lord. Strengthens physical vitality, cellular immunity, personal charisma, and general well-being. It can generally be worn lifelong as a foundational energy shield.
+                      </p>
+                    </div>
+
+                    {/* 2. Lucky Stone */}
+                    <div className="p-5 rounded-2xl bg-[#FAF8F5] border border-amber-900/15 shadow-2xs space-y-2.5">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-amber-100 text-amber-900 border border-amber-300/60">
+                          9th House (Bhagya Bhava)
+                        </span>
+                        <Sparkles className="w-4 h-4 text-amber-800" />
+                      </div>
+                      <h4 className="text-base font-bold text-amber-950 font-vedic">
+                        Lucky Stone (Bhagya Ratna)
+                      </h4>
+                      <p className="text-xs text-stone-600 leading-relaxed">
+                        Belongs to the 9th house ruler of fortune, divine grace, and dharma. Magnetizes auspicious opportunities, unlocks career breakthroughs, and removes karmic roadblocks during major transitions.
+                      </p>
+                    </div>
+
+                    {/* 3. Benefic Stone */}
+                    <div className="p-5 rounded-2xl bg-[#FAF8F5] border border-amber-900/15 shadow-2xs space-y-2.5">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-amber-100 text-amber-900 border border-amber-300/60">
+                          5th House (Buddhi Bhava)
+                        </span>
+                        <Coins className="w-4 h-4 text-amber-800" />
+                      </div>
+                      <h4 className="text-base font-bold text-amber-950 font-vedic">
+                        Benefic Stone (Karak Ratna)
+                      </h4>
+                      <p className="text-xs text-stone-600 leading-relaxed">
+                        Belongs to the 5th house ruler of intellect, creativity, and past-life merits (Purva Punya). Enhances mental clarity, memory retention, higher education, and strategic decision-making.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* The 9 Classical Navaratnas Directory */}
+              <div className="bg-white rounded-3xl border border-amber-900/15 p-6 sm:p-8 shadow-xs space-y-5">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-stone-100">
+                  <div>
+                    <h3 className="text-lg font-bold text-amber-950 font-vedic flex items-center gap-2">
+                      <Sparkles className="w-5 h-5 text-amber-700" />
+                      <span>The 9 Sacred Navaratnas (नवग्रह एवं उनके रत्न)</span>
+                    </h3>
+                    <p className="text-xs text-stone-500 mt-0.5">
+                      Click any gemstone to review its authentic Beej Mantra, Prana Pratishtha ritual, and astrological properties.
+                    </p>
+                  </div>
+                  <span className="text-xs font-semibold text-amber-900 bg-amber-50 px-3 py-1 rounded-full border border-amber-200 self-start sm:self-auto">
+                    9 Vedic Planetary Gems
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {Object.values(NAVARATNA_DATA).map((gem) => (
+                    <div
+                      key={gem.id}
+                      onClick={() => setSelectedGemId(gem.id)}
+                      className="p-4 rounded-2xl border border-stone-200/90 hover:border-amber-900/30 bg-[#FAF9F6] hover:bg-white hover:shadow-md transition-all cursor-pointer flex flex-col justify-between group"
+                    >
+                      <div>
+                        <div className="flex items-center gap-3 mb-3">
+                          <div className="p-1.5 rounded-xl bg-white border border-stone-200/80 shadow-2xs shrink-0 group-hover:scale-105 transition-transform">
+                            <GemstoneImage gemId={gem.id} size="md" />
+                          </div>
+                          <div>
+                            <h4 className="text-sm font-bold text-amber-950 font-vedic group-hover:text-amber-800">
+                              {gem.name}
+                            </h4>
+                            <p className="text-xs text-stone-600 font-vedic">
+                              {gem.sanskritName} • {gem.planetName.split(' ')[0]}
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="flex flex-wrap gap-1 mb-2.5">
+                          <span className="text-[10px] px-2 py-0.5 rounded-md bg-stone-100 text-stone-700 font-semibold">
+                            {gem.planetName}
+                          </span>
+                          <span className="text-[10px] px-2 py-0.5 rounded-md bg-amber-100/80 text-amber-900 font-medium">
+                            {gem.energyType.split(' / ')[0]}
+                          </span>
+                        </div>
+
+                        <p className="text-xs text-stone-600 line-clamp-2 mb-3">
+                          {gem.primaryBenefits[0]}
+                        </p>
+
+                        <div className="space-y-1 text-[11px] text-stone-600 bg-white p-2.5 rounded-xl border border-stone-200/60">
+                          <div><strong>Metal:</strong> {gem.idealMetal.split(' or ')[0]}</div>
+                          <div><strong>Finger:</strong> {gem.idealFinger.split('(')[0]}</div>
+                          <div><strong>Day:</strong> {gem.wearingDay.split(' during')[0]}</div>
+                        </div>
+                      </div>
+
+                      <div className="mt-3 pt-2 border-t border-stone-200/60 flex items-center justify-between text-xs font-semibold text-amber-900 group-hover:text-amber-950">
+                        <span>View Rituals &amp; Mantras</span>
+                        <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Foundational Jyotish Rules Callout */}
+              <div className="bg-[#FAF8F5] rounded-3xl border border-amber-900/15 p-6 sm:p-8 shadow-xs space-y-4">
+                <h3 className="text-base font-bold text-amber-950 font-vedic flex items-center gap-2">
+                  <ShieldAlert className="w-5 h-5 text-amber-800" />
+                  <span>Important Jyotish Rules Before Wearing Any Gemstone</span>
+                </h3>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs text-stone-700">
+                  <div className="p-4 rounded-xl bg-white border border-stone-200/80 space-y-1.5">
+                    <strong className="text-amber-950 font-bold block text-sm font-vedic">1. Cosmic Antennas, Not Absorbers</strong>
+                    <p className="leading-relaxed text-stone-600">
+                      Gemstones never absorb or neutralize negative energy; they radiate and amplify planetary light into your subtle body. Never wear a gemstone for an enemy or functional malefic planet.
+                    </p>
+                  </div>
+
+                  <div className="p-4 rounded-xl bg-white border border-stone-200/80 space-y-1.5">
+                    <strong className="text-amber-950 font-bold block text-sm font-vedic">2. Ascendant (Lagna) Priority</strong>
+                    <p className="leading-relaxed text-stone-600">
+                      Authentic prescriptions depend on your precise Ascendant (Lagna) degree and house lordship, rather than generic Western monthly birthstones.
+                    </p>
+                  </div>
+
+                  <div className="p-4 rounded-xl bg-white border border-stone-200/80 space-y-1.5">
+                    <strong className="text-amber-950 font-bold block text-sm font-vedic">3. Constitutional Weight (Ratti)</strong>
+                    <p className="leading-relaxed text-stone-600">
+                      A gemstone's weight must be calibrated to your physical body mass (minimum 1 Ratti per 10-12 kg body weight) to ensure the proper biological prana threshold.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
 
         </div>
       )}

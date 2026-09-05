@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100%" height="100%">
+  <defs>
+    <linearGradient id="dashaBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#e0e7ff" />
+      <stop offset="100%" stop-color="#c7d2fe" />
+    </linearGradient>
+    <linearGradient id="orbitGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#4338ca" />
+      <stop offset="100%" stop-color="#6366f1" />
+    </linearGradient>
+  </defs>
+
+  <rect x="2" y="2" width="96" height="96" rx="20" fill="url(#dashaBg)" stroke="#a5b4fc" stroke-width="1.5" />
+
+  <!-- Concentric Planetary Orbits (120-Year cycles) -->
+  <circle cx="50" cy="50" r="38" fill="none" stroke="#6366f1" stroke-width="1.2" stroke-dasharray="2 3" opacity="0.7" />
+  <circle cx="50" cy="50" r="28" fill="none" stroke="#4f46e5" stroke-width="1.5" stroke-dasharray="4 2" />
+  <circle cx="50" cy="50" r="18" fill="none" stroke="#4338ca" stroke-width="1.2" />
+
+  <!-- Orbiting Navagrahas (Planets) -->
+  <!-- Jupiter / Guru -->
+  <circle cx="50" cy="12" r="5" fill="#f59e0b" stroke="#fff" stroke-width="1.2" />
+  <!-- Saturn / Shani -->
+  <circle cx="86" cy="40" r="4.5" fill="#1e293b" stroke="#94a3b8" stroke-width="1.2" />
+  <!-- Mercury / Budha -->
+  <circle cx="74" cy="74" r="3.5" fill="#10b981" stroke="#fff" stroke-width="1" />
+  <!-- Venus / Shukra -->
+  <circle cx="36" cy="84" r="4.5" fill="#ec4899" stroke="#fff" stroke-width="1" />
+  <!-- Mars / Mangala -->
+  <circle cx="14" cy="48" r="4" fill="#ef4444" stroke="#fff" stroke-width="1" />
+  <!-- Moon / Chandra -->
+  <circle cx="30" cy="24" r="4" fill="#f8fafc" stroke="#64748b" stroke-width="1" />
+
+  <!-- Central Surya Sun (Core of Dasha Calculation) -->
+  <circle cx="50" cy="50" r="10" fill="url(#orbitGrad)" stroke="#fcd34d" stroke-width="2" />
+  <circle cx="50" cy="50" r="5" fill="#fbbf24" />
+
+  <!-- Degree Ray Pointer -->
+  <line x1="50" y1="50" x2="50" y2="18" stroke="#f59e0b" stroke-width="2" stroke-linecap="round" />
+  <line x1="50" y1="50" x2="70" y2="50" stroke="#f59e0b" stroke-width="1.5" stroke-linecap="round" />
+</svg>

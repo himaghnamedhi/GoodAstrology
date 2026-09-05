@@ -86,6 +86,7 @@ export const MatchFinder: React.FC<MatchFinderProps> = ({ onNavigateToTab, onOpe
   const [expandedKuta, setExpandedKuta] = useState<string | null>(null);
   const [showPrintModal, setShowPrintModal] = useState<boolean>(false);
   const [copiedNotification, setCopiedNotification] = useState<boolean>(false);
+  const [hasCalculated, setHasCalculated] = useState<boolean>(false);
 
   // Active calculated match report
   const [matchReport, setMatchReport] = useState<VedAstroMatchReport>(() => 
@@ -121,6 +122,7 @@ export const MatchFinder: React.FC<MatchFinderProps> = ({ onNavigateToTab, onOpe
 
     const report = calculateVedAstroMatch(updatedP1, updatedP2);
     setMatchReport(report);
+    setHasCalculated(true);
   };
 
   // Preset loader
@@ -155,6 +157,7 @@ export const MatchFinder: React.FC<MatchFinderProps> = ({ onNavigateToTab, onOpe
 
     const report = calculateVedAstroMatch(newP1, newP2);
     setMatchReport(report);
+    setHasCalculated(true);
   };
 
   // Filtered cities for P1
@@ -742,35 +745,64 @@ Calculated via GoodAstrology Match Finder`;
 
       {/* CALCULATE & REPORT ACTION ROW */}
       <div className="flex flex-wrap items-center justify-center gap-3">
+        {hasCalculated && (
+          <button
+            type="button"
+            onClick={() => setHasCalculated(false)}
+            className="px-5 py-4 rounded-2xl bg-white hover:bg-stone-100 text-stone-700 border border-stone-300 font-semibold text-sm flex items-center gap-2 shadow-xs transition-all active:scale-95 cursor-pointer"
+          >
+            <RotateCcw className="w-4 h-4 text-stone-600" />
+            <span>View Basic Information</span>
+          </button>
+        )}
+
         <button
           type="button"
           onClick={handleCalculateMatch}
           className="px-8 py-4 rounded-2xl bg-gradient-to-r from-amber-800 via-amber-900 to-amber-950 text-amber-50 font-extrabold text-base tracking-wide font-vedic shadow-lg hover:shadow-xl hover:scale-[1.01] active:scale-[0.98] transition-all flex items-center gap-3 cursor-pointer border border-amber-600/30"
         >
           <Heart className="w-5 h-5 text-rose-400 fill-rose-400 animate-pulse" />
-          <span>Calculate Kundali Match (कुंडली मिलान करें)</span>
+          <span>{hasCalculated ? 'Recalculate Kundali Match (पुनर्गणना करें)' : 'Calculate Kundali Match (कुंडली मिलान करें)'}</span>
           <Sparkles className="w-4 h-4 text-amber-300" />
         </button>
 
-        <button
-          id="btn-match-generate-report-top"
-          type="button"
-          onClick={() => {
-            if (onOpenCustomReport) {
-              onOpenCustomReport({ report: matchReport, p1: p1Details, p2: p2Details });
-            } else {
-              setShowPrintModal(true);
-            }
-          }}
-          className="px-6 py-4 rounded-2xl bg-stone-900 hover:bg-black text-amber-100 font-bold text-sm tracking-wide shadow-md hover:shadow-lg transition-all flex items-center gap-2.5 cursor-pointer border border-stone-700"
-        >
-          <FileText className="w-4 h-4 text-amber-300" />
-          <span>Generate Report</span>
-        </button>
+        {hasCalculated && (
+          <button
+            id="btn-match-generate-report-top"
+            type="button"
+            onClick={() => {
+              if (onOpenCustomReport) {
+                onOpenCustomReport({ report: matchReport, p1: p1Details, p2: p2Details });
+              } else {
+                setShowPrintModal(true);
+              }
+            }}
+            className="px-6 py-4 rounded-2xl bg-stone-900 hover:bg-black text-amber-100 font-bold text-sm tracking-wide shadow-md hover:shadow-lg transition-all flex items-center gap-2.5 cursor-pointer border border-stone-700"
+          >
+            <FileText className="w-4 h-4 text-amber-300" />
+            <span>Generate Report</span>
+          </button>
+        )}
       </div>
 
-      {/* 3. MATCH RESULTS DASHBOARD - UNIFIED SINGLE CARD */}
-      <div className="bg-white rounded-3xl border border-amber-900/15 shadow-sm overflow-hidden divide-y divide-stone-200">
+      {hasCalculated ? (
+        /* 3. MATCH RESULTS DASHBOARD - UNIFIED SINGLE CARD */
+        <div className="bg-white rounded-3xl border border-amber-900/15 shadow-sm overflow-hidden divide-y divide-stone-200 animate-fadeIn">
+          {/* Active Status Banner */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-6 py-3.5 bg-amber-50/80 border-b border-amber-900/15 text-xs text-amber-950">
+            <div className="flex items-center gap-2 font-medium">
+              <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+              <span>Compatibility calculated for <strong>{p1Details.name || 'Partner 1'}</strong> &amp; <strong>{p2Details.name || 'Partner 2'}</strong></span>
+            </div>
+            <button
+              type="button"
+              onClick={() => setHasCalculated(false)}
+              className="px-3 py-1.5 rounded-xl bg-white hover:bg-amber-100/80 border border-amber-900/20 text-stone-800 text-xs font-semibold flex items-center gap-1.5 transition-all shadow-2xs active:scale-95 cursor-pointer self-start sm:self-auto"
+            >
+              <RotateCcw className="w-3.5 h-3.5 text-amber-800" />
+              <span>Show Basic Info Guide</span>
+            </button>
+          </div>
         
         {/* SCORE BANNER */}
         <div className="p-6 sm:p-8 space-y-6">
@@ -1351,6 +1383,249 @@ Calculated via GoodAstrology Match Finder`;
         </div>
 
       </div>
+    ) : (
+      /* BASIC DETAILS FOR THE SPACE (Shown when match is not calculated yet) */
+      <div className="space-y-8 animate-fadeIn">
+        {/* Header Card */}
+        <div className="bg-white rounded-3xl border border-amber-900/15 p-6 sm:p-8 shadow-xs space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-stone-100">
+            <div className="space-y-1">
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-100/70 text-amber-900 text-xs font-semibold uppercase tracking-wider">
+                <BookOpen className="w-3.5 h-3.5 text-amber-800" />
+                <span>Foundational Ashtakoota Milan</span>
+              </div>
+              <h2 className="text-xl sm:text-2xl font-bold text-amber-950 font-vedic">
+                Basic Kundali Milan &amp; Ashtakoota Guide (कुंडली एवं अष्टकूट मिलान परिचय)
+              </h2>
+              <p className="text-xs sm:text-sm text-stone-600 max-w-3xl leading-relaxed">
+                In classical Vedic Jyotish (Sage Parashara &amp; Varahamihira), marriage compatibility evaluates subtle energetic vibrations, karmic ties, emotional chemistry, and physiological harmony across <strong>8 sacred dimensions (Ashtakoota)</strong> totaling <strong>36 Gunas</strong>. Enter both partners' birth details above or select a curated sample match, then click <strong>"Calculate Kundali Match"</strong> to generate your complete compatibility dossier.
+              </p>
+            </div>
+          </div>
+
+          {/* The 8 Kutas (Dimensions) Grid */}
+          <div className="pt-2">
+            <h3 className="text-sm font-bold uppercase tracking-wider text-stone-700 font-vedic mb-3 flex items-center gap-2">
+              <Award className="w-4 h-4 text-amber-800" />
+              <span>The 8 Sacred Kootas &amp; 36 Guna Score Distribution (अष्टकूट विवरण)</span>
+            </h3>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              {/* 1. Varna */}
+              <div className="p-4 rounded-2xl bg-[#FAF8F5] border border-amber-900/15 shadow-2xs space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-amber-100 text-amber-900 border border-amber-300/60">
+                    1 Point
+                  </span>
+                  <Scale className="w-4 h-4 text-amber-800" />
+                </div>
+                <h4 className="text-sm font-bold text-amber-950 font-vedic">
+                  1. Varna Kuta (वर्ण)
+                </h4>
+                <p className="text-xs text-stone-600 leading-relaxed">
+                  Evaluates spiritual ego compatibility, work temperament, and mutual respect between the partners based on Moon signs.
+                </p>
+              </div>
+
+              {/* 2. Vashya */}
+              <div className="p-4 rounded-2xl bg-[#FAF8F5] border border-amber-900/15 shadow-2xs space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-amber-100 text-amber-900 border border-amber-300/60">
+                    2 Points
+                  </span>
+                  <Heart className="w-4 h-4 text-rose-700" />
+                </div>
+                <h4 className="text-sm font-bold text-amber-950 font-vedic">
+                  2. Vashya Kuta (वश्य)
+                </h4>
+                <p className="text-xs text-stone-600 leading-relaxed">
+                  Measures mutual magnetic attraction, emotional influence, and the healthy balance of dynamic authority in the union.
+                </p>
+              </div>
+
+              {/* 3. Tara */}
+              <div className="p-4 rounded-2xl bg-[#FAF8F5] border border-amber-900/15 shadow-2xs space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-amber-100 text-amber-900 border border-amber-300/60">
+                    3 Points
+                  </span>
+                  <Sparkles className="w-4 h-4 text-amber-800" />
+                </div>
+                <h4 className="text-sm font-bold text-amber-950 font-vedic">
+                  3. Tara Kuta (तारा / दीना)
+                </h4>
+                <p className="text-xs text-stone-600 leading-relaxed">
+                  Calculated from birth stars (Nakshatras) to assess destiny alignment, health, well-being, longevity, and auspicious karmic trajectory.
+                </p>
+              </div>
+
+              {/* 4. Yoni */}
+              <div className="p-4 rounded-2xl bg-[#FAF8F5] border border-amber-900/15 shadow-2xs space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-amber-100 text-amber-900 border border-amber-300/60">
+                    4 Points
+                  </span>
+                  <Flame className="w-4 h-4 text-orange-700" />
+                </div>
+                <h4 className="text-sm font-bold text-amber-950 font-vedic">
+                  4. Yoni Kuta (योनि)
+                </h4>
+                <p className="text-xs text-stone-600 leading-relaxed">
+                  Assesses biological compatibility, instinctive affinity, sexual harmony, and subconscious physical affection based on 14 sacred animal totems.
+                </p>
+              </div>
+
+              {/* 5. Graha Maitri */}
+              <div className="p-4 rounded-2xl bg-[#FAF8F5] border border-amber-900/15 shadow-2xs space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-amber-100 text-amber-900 border border-amber-300/60">
+                    5 Points
+                  </span>
+                  <Users className="w-4 h-4 text-amber-800" />
+                </div>
+                <h4 className="text-sm font-bold text-amber-950 font-vedic">
+                  5. Graha Maitri (ग्रह मैत्री)
+                </h4>
+                <p className="text-xs text-stone-600 leading-relaxed">
+                  Planetary friendship of Moon sign lords. Governs psychological wavelength, daily communication, mental rapport, and intellectual friendship.
+                </p>
+              </div>
+
+              {/* 6. Gana */}
+              <div className="p-4 rounded-2xl bg-[#FAF8F5] border border-amber-900/15 shadow-2xs space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-amber-100 text-amber-900 border border-amber-300/60">
+                    6 Points
+                  </span>
+                  <ShieldCheck className="w-4 h-4 text-emerald-700" />
+                </div>
+                <h4 className="text-sm font-bold text-amber-950 font-vedic">
+                  6. Gana Kuta (गण)
+                </h4>
+                <p className="text-xs text-stone-600 leading-relaxed">
+                  Classifies temperaments into Deva (divine/empathic), Manushya (human/practical), and Rakshasa (dominant/assertive) for lifestyle compatibility.
+                </p>
+              </div>
+
+              {/* 7. Bhakoot */}
+              <div className="p-4 rounded-2xl bg-[#FAF8F5] border border-amber-900/15 shadow-2xs space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-amber-100 text-amber-900 border border-amber-300/60">
+                    7 Points
+                  </span>
+                  <Heart className="w-4 h-4 text-indigo-700" />
+                </div>
+                <h4 className="text-sm font-bold text-amber-950 font-vedic">
+                  7. Bhakoot Kuta (भकूट)
+                </h4>
+                <p className="text-xs text-stone-600 leading-relaxed">
+                  Analyzes relative Moon sign positions (2/12, 6/8, 9/5). Dictates emotional closeness, family prosperity, financial longevity, and mutual bliss.
+                </p>
+              </div>
+
+              {/* 8. Nadi */}
+              <div className="p-4 rounded-2xl bg-[#FAF8F5] border border-amber-900/15 shadow-2xs space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-amber-100 text-amber-900 border border-amber-300/60">
+                    8 Points (Highest)
+                  </span>
+                  <Sparkles className="w-4 h-4 text-purple-700" />
+                </div>
+                <h4 className="text-sm font-bold text-amber-950 font-vedic">
+                  8. Nadi Kuta (नाडी)
+                </h4>
+                <p className="text-xs text-stone-600 leading-relaxed">
+                  Evaluates physiological constitution (Vata, Pitta, Kapha), hereditary health, cellular vitality, genetic harmony, and sound progeny.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Scoring & Manglik Pillars */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Classical Benchmark Scale */}
+          <div className="bg-white rounded-3xl border border-amber-900/15 p-6 sm:p-7 shadow-xs space-y-4">
+            <h3 className="text-base font-bold text-amber-950 font-vedic flex items-center gap-2">
+              <Scale className="w-5 h-5 text-amber-800" />
+              <span>Classical 36 Gunas Scoring Scale (गुण मिलान पैमाना)</span>
+            </h3>
+
+            <div className="space-y-3 text-xs">
+              <div className="p-3.5 rounded-xl bg-emerald-50 border border-emerald-200/80 flex items-start gap-3">
+                <span className="px-2 py-1 rounded-lg bg-emerald-600 text-white font-extrabold text-xs whitespace-nowrap">
+                  25 – 36 Gunas
+                </span>
+                <div className="space-y-0.5">
+                  <strong className="text-emerald-950 font-bold block text-sm">Excellent / Uttam (उत्तम मिलान)</strong>
+                  <p className="text-emerald-800 leading-relaxed">
+                    Highly auspicious union with natural spiritual and emotional synchronization, financial prosperity, and mutual growth.
+                  </p>
+                </div>
+              </div>
+
+              <div className="p-3.5 rounded-xl bg-amber-50 border border-amber-200/80 flex items-start gap-3">
+                <span className="px-2 py-1 rounded-lg bg-amber-600 text-white font-extrabold text-xs whitespace-nowrap">
+                  18 – 24 Gunas
+                </span>
+                <div className="space-y-0.5">
+                  <strong className="text-amber-950 font-bold block text-sm">Average / Madhyam (मध्यम मिलान)</strong>
+                  <p className="text-amber-800 leading-relaxed">
+                    Acceptable threshold for marital stability. Minor remedial adjustments or mutual understanding can sustain long-term harmony.
+                  </p>
+                </div>
+              </div>
+
+              <div className="p-3.5 rounded-xl bg-rose-50 border border-rose-200/80 flex items-start gap-3">
+                <span className="px-2 py-1 rounded-lg bg-rose-600 text-white font-extrabold text-xs whitespace-nowrap">
+                  Below 18 Gunas
+                </span>
+                <div className="space-y-0.5">
+                  <strong className="text-rose-950 font-bold block text-sm">Inauspicious / Ashubh (अशुभ मिलान)</strong>
+                  <p className="text-rose-800 leading-relaxed">
+                    Significant friction in temperament or doshas. Requires in-depth individual chart verification and Vedic remedies (Upayas).
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Manglik Dosha & Upaya Basics */}
+          <div className="bg-[#FAF8F5] rounded-3xl border border-amber-900/15 p-6 sm:p-7 shadow-xs space-y-4">
+            <h3 className="text-base font-bold text-amber-950 font-vedic flex items-center gap-2">
+              <AlertTriangle className="w-5 h-5 text-amber-800" />
+              <span>Manglik (Kuja) Dosha Balancing (मांगलिक विचार)</span>
+            </h3>
+
+            <div className="space-y-3 text-xs text-stone-700">
+              <div className="p-3.5 rounded-xl bg-white border border-stone-200/80 space-y-1">
+                <strong className="text-amber-950 font-bold block text-sm font-vedic">What causes Manglik Dosha?</strong>
+                <p className="text-stone-600 leading-relaxed">
+                  Occurs when fiery Mars (Mangal) occupies the 1st, 2nd, 4th, 7th, 8th, or 12th house from Lagna, Moon, or Venus, bringing intensity to marital dynamics.
+                </p>
+              </div>
+
+              <div className="p-3.5 rounded-xl bg-white border border-stone-200/80 space-y-1">
+                <strong className="text-amber-950 font-bold block text-sm font-vedic">Authentic Parashari Cancellations (दोष परिहार)</strong>
+                <p className="text-stone-600 leading-relaxed">
+                  Manglik Dosha is naturally neutralized when both partners are Manglik, or if Mars is placed in friendly signs, associated with benefics (Jupiter), or after age 28.
+                </p>
+              </div>
+
+              <div className="p-3.5 rounded-xl bg-amber-100/60 border border-amber-200/90 text-amber-950 font-medium space-y-1">
+                <div className="flex items-center gap-1.5 font-bold text-xs text-amber-900">
+                  <Info className="w-4 h-4 text-amber-800 shrink-0" />
+                  <span>Ready to Calculate?</span>
+                </div>
+                <p className="text-xs text-amber-900/90 leading-relaxed">
+                  Enter both partners' birth details above or try the curated sample matches to view the live calculation report.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    )}
 
       {/* PRINTABLE REPORT MODAL */}
       {showPrintModal && (

@@ -38,6 +38,7 @@ import {
   LAGNA_RECOMMENDATIONS, 
   NAVARATNA_DATA 
 } from '../data/gemstoneData';
+import { CompleteKundliData } from '../data/vedicEphemeris';
 
 import { KundliReportPages } from './reports/KundliReportPages';
 import { MatchReportPages } from './reports/MatchReportPages';
@@ -55,6 +56,7 @@ export interface CustomReportModalProps {
   initialName?: string;
   initialLagna?: string;
   initialBirthDetails?: string;
+  initialKundliData?: CompleteKundliData | null;
   // Match inputs (optional)
   initialMatchReport?: VedAstroMatchReport;
   initialP1Details?: BirthDetails;
@@ -89,6 +91,7 @@ export const CustomReportModal: React.FC<CustomReportModalProps> = ({
   initialName = '',
   initialLagna = 'Aries (Mesha) ♈',
   initialBirthDetails = '',
+  initialKundliData,
   initialMatchReport,
   initialP1Details,
   initialP2Details,
@@ -102,9 +105,19 @@ export const CustomReportModal: React.FC<CustomReportModalProps> = ({
   const [exportProgress, setExportProgress] = useState<string>('');
 
   // 1. Kundli State
-  const [nativeName, setNativeName] = useState(initialName);
-  const [lagnaSign, setLagnaSign] = useState(initialLagna);
-  const [birthDetails, setBirthDetails] = useState(initialBirthDetails);
+  const [nativeName, setNativeName] = useState(() => initialKundliData?.birthDetails?.name || initialName);
+  const [lagnaSign, setLagnaSign] = useState(() => {
+    if (initialKundliData?.lagna?.signNumber) {
+      return ZODIAC_SIGNS[initialKundliData.lagna.signNumber - 1] || initialLagna;
+    }
+    return initialLagna;
+  });
+  const [birthDetails, setBirthDetails] = useState(() => {
+    if (initialKundliData?.birthDetails) {
+      return `${initialKundliData.birthDetails.dob} • ${initialKundliData.birthDetails.tob} • ${initialKundliData.birthDetails.city}`;
+    }
+    return initialBirthDetails;
+  });
   const [reportChartStyle, setReportChartStyle] = useState<ChartStyle>(initialChartStyle);
 
   // 2. Match Finder State

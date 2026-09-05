@@ -1,0 +1,68 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="100%" height="100%">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#78350f" />
+      <stop offset="50%" stop-color="#451a03" />
+      <stop offset="100%" stop-color="#1c0702" />
+    </linearGradient>
+    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fef08a" />
+      <stop offset="40%" stop-color="#f59e0b" />
+      <stop offset="80%" stop-color="#d97706" />
+      <stop offset="100%" stop-color="#b45309" />
+    </linearGradient>
+    <radialGradient id="sunGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#fbbf24" stop-opacity="0.9" />
+      <stop offset="60%" stop-color="#f59e0b" stop-opacity="0.3" />
+      <stop offset="100%" stop-color="#b45309" stop-opacity="0" />
+    </radialGradient>
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="2" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+  </defs>
+
+  <!-- Background rounded squircle -->
+  <rect x="4" y="4" width="112" height="112" rx="26" fill="url(#bgGrad)" stroke="#d97706" stroke-width="1.5" stroke-opacity="0.4" />
+
+  <!-- Outer Astral Ring -->
+  <circle cx="60" cy="60" r="48" fill="none" stroke="url(#goldGrad)" stroke-width="1" stroke-dasharray="3 3" opacity="0.6" />
+  <circle cx="60" cy="60" r="42" fill="none" stroke="url(#goldGrad)" stroke-width="1.5" opacity="0.85" />
+  
+  <!-- Central Aura Glow -->
+  <circle cx="60" cy="60" r="28" fill="url(#sunGlow)" />
+
+  <!-- 12 Radiant Rays (Surya) -->
+  <g stroke="url(#goldGrad)" stroke-width="1.8" stroke-linecap="round" opacity="0.9">
+    <line x1="60" y1="16" x2="60" y2="24" />
+    <line x1="60" y1="96" x2="60" y2="104" />
+    <line x1="16" y1="60" x2="24" y2="60" />
+    <line x1="96" y1="60" x2="104" y2="60" />
+    <line x1="29" y1="29" x2="35" y2="35" />
+    <line x1="85" y1="85" x2="91" y2="91" />
+    <line x1="29" y1="91" x2="35" y2="85" />
+    <line x1="85" y1="35" x2="91" y2="29" />
+    <line x1="42" y1="20" x2="45" y2="26" />
+    <line x1="78" y1="20" x2="75" y2="26" />
+    <line x1="42" y1="100" x2="45" y2="94" />
+    <line x1="78" y1="100" x2="75" y2="94" />
+  </g>
+
+  <!-- Sacred Janam Kundali Diamond Frame -->
+  <polygon points="60,28 92,60 60,92 28,60" fill="#451a03" fill-opacity="0.75" stroke="url(#goldGrad)" stroke-width="2" filter="url(#glow)" />
+  <polygon points="60,36 84,60 60,84 36,60" fill="none" stroke="url(#goldGrad)" stroke-width="1.2" opacity="0.9" />
+
+  <!-- Inner Cross Lines of Kundali -->
+  <line x1="36" y1="60" x2="84" y2="60" stroke="url(#goldGrad)" stroke-width="1" opacity="0.75" />
+  <line x1="60" y1="36" x2="60" y2="84" stroke="url(#goldGrad)" stroke-width="1" opacity="0.75" />
+
+  <!-- Central Auspicious Surya Orb -->
+  <circle cx="60" cy="60" r="7.5" fill="url(#goldGrad)" stroke="#fff" stroke-width="1" />
+  <circle cx="60" cy="60" r="3.5" fill="#78350f" />
+
+  <!-- Micro Celestial Stars -->
+  <circle cx="48" cy="48" r="1.5" fill="#fef08a" opacity="0.9" />
+  <circle cx="72" cy="48" r="1.5" fill="#fef08a" opacity="0.9" />
+  <circle cx="48" cy="72" r="1.5" fill="#fef08a" opacity="0.9" />
+  <circle cx="72" cy="72" r="1.5" fill="#fef08a" opacity="0.9" />
+</svg>

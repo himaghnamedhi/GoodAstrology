@@ -138,11 +138,11 @@ export const KundliChart: React.FC<KundliChartProps> = ({
         </div>
       </div>
 
-      {/* Main Visualizer Area: SVG Chart + Live Inspector */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+      {/* Main Visualizer Area: SVG Chart + Live Inspector (Balanced 50/50 Columns of Identical Size) */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
         
         {/* Left / Center: Interactive SVG Kundli */}
-        <div className="lg:col-span-7 bg-amber-50/50 p-4 sm:p-6 rounded-3xl border border-amber-900/15 shadow-sm flex flex-col items-center">
+        <div className="w-full h-full bg-amber-50/50 p-5 sm:p-6 rounded-3xl border border-amber-900/15 shadow-sm flex flex-col items-center justify-between">
           
           {/* Quick Highlight Filter Chips */}
           <div className="w-full flex flex-wrap items-center justify-center gap-1.5 mb-4 text-xs">
@@ -170,7 +170,7 @@ export const KundliChart: React.FC<KundliChartProps> = ({
           </div>
 
           {/* Chart Wrapper Container */}
-          <div className="relative w-full max-w-[480px] aspect-square bg-[#FDFBF7] p-2 rounded-2xl shadow-inner border border-amber-900/20">
+          <div className="relative w-full max-w-[480px] aspect-square bg-[#FDFBF7] p-2 rounded-2xl shadow-inner border border-amber-900/20 my-auto">
             {chartStyle === 'north' ? (
               /* NORTH INDIAN DIAMOND CHART */
               <svg
@@ -397,9 +397,9 @@ export const KundliChart: React.FC<KundliChartProps> = ({
         </div>
 
         {/* Right Panel: Dynamic Live Inspector for Clicked House */}
-        <div className="lg:col-span-5 space-y-4">
+        <div className="w-full h-full flex flex-col">
           {activeHouseData ? (
-            <div className="bg-white rounded-3xl p-5 sm:p-6 border border-amber-900/15 shadow-sm space-y-4">
+            <div className="w-full h-full bg-white rounded-3xl p-5 sm:p-6 border border-amber-900/15 shadow-sm flex flex-col justify-between space-y-4">
               
               {/* Header of Selected House */}
               <div className="flex items-start justify-between border-b border-stone-200 pb-3.5">
@@ -501,7 +501,7 @@ export const KundliChart: React.FC<KundliChartProps> = ({
 
             </div>
           ) : (
-            <div className="bg-white rounded-3xl p-8 border border-amber-900/15 shadow-sm text-center flex flex-col items-center justify-center min-h-[380px]">
+            <div className="w-full h-full min-h-[500px] bg-white rounded-3xl p-8 border border-amber-900/15 shadow-sm text-center flex flex-col items-center justify-center">
               <Compass className="w-12 h-12 text-amber-600/40 mb-3 animate-spin-slow" />
               <h3 className="font-vedic text-lg font-bold text-amber-950">Select Any House</h3>
               <p className="text-xs text-stone-600 max-w-xs mt-1">

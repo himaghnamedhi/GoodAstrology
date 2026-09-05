@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100%" height="100%">
+  <defs>
+    <linearGradient id="pdfBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fff1f2" />
+      <stop offset="100%" stop-color="#ffe4e6" />
+    </linearGradient>
+    <linearGradient id="scrollPaper" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fffbeb" />
+      <stop offset="100%" stop-color="#fef3c7" />
+    </linearGradient>
+    <linearGradient id="ribbonGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#e11d48" />
+      <stop offset="100%" stop-color="#9f1239" />
+    </linearGradient>
+  </defs>
+
+  <rect x="2" y="2" width="96" height="96" rx="20" fill="url(#pdfBg)" stroke="#fecdd3" stroke-width="1.5" />
+
+  <!-- Sacred Vedic Patrika Document Sheet -->
+  <rect x="24" y="16" width="52" height="68" rx="4" fill="url(#scrollPaper)" stroke="#d97706" stroke-width="1.5" />
+  
+  <!-- Document Fold Corner -->
+  <polygon points="62,16 76,30 62,30" fill="#fde68a" stroke="#d97706" stroke-width="1.2" />
+
+  <!-- Astrological Chart Diamond on Document -->
+  <polygon points="50,34 60,44 50,54 40,44" fill="#fef08a" stroke="#b45309" stroke-width="1.2" />
+  <line x1="40" y1="44" x2="60" y2="44" stroke="#b45309" stroke-width="0.8" />
+  <line x1="50" y1="34" x2="50" y2="54" stroke="#b45309" stroke-width="0.8" />
+
+  <!-- Script Lines of Janam Patrika -->
+  <line x1="32" y1="60" x2="68" y2="60" stroke="#78350f" stroke-width="1.5" stroke-linecap="round" />
+  <line x1="32" y1="66" x2="64" y2="66" stroke="#92400e" stroke-width="1.5" stroke-linecap="round" />
+  <line x1="32" y1="72" x2="56" y2="72" stroke="#b45309" stroke-width="1.5" stroke-linecap="round" />
+
+  <!-- Royal Red Seal & Ribbon -->
+  <circle cx="64" cy="72" r="7" fill="url(#ribbonGrad)" stroke="#fff" stroke-width="1" />
+  <polygon points="64,68 66,71 69,72 66,74 64,77 62,74 59,72 62,71" fill="#fef08a" />
+</svg>
